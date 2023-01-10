@@ -2,43 +2,7 @@ from datetime import datetime
 
 import sqlalchemy as sq
 from sqlalchemy.orm import relationship
-
-from .database import Base
-
-
-followers = sq.Table(
-    'followers',
-    Base.metadata,
-    sq.Column('follower_id', sq.Integer, sq.ForeignKey('user.id'), primary_key=True),
-    sq.Column('followed_id', sq.Integer, sq.ForeignKey('user.id'), primary_key=True)
-)
-
-
-class User(Base):
-
-    __tablename__ = 'user'
-
-    id = sq.Column(sq.Integer, primary_key=True, autoincrement=True)
-    username = sq.Column(sq.String(50), unique=True, nullable=False, index=True)
-    email = sq.Column(sq.String(80), nullable=False, unique=True)
-    password = sq.Column(sq.String(100), nullable=False)
-    registration_at = sq.Column(sq.DateTime, default=datetime.now())
-    is_active = sq.Column(sq.Boolean, default=False)
-    is_admin = sq.Column(sq.Boolean, default=False)
-
-    followed = relationship(
-        'User',
-        secondary=followers,
-        primaryjoin=(followers.c.follower_id == id),
-        secondaryjoin=(followers.c.followed_id == id),
-        backref='followers',
-        lazy='dynamic'
-        )
-
-    posts = relationship('Post', back_populates="post_owner")
-    comments = relationship('Comment', back_populates='comment_owner')
-    liked_posts = relationship('Like', back_populates='like_owner')
-    reposts = relationship('Repost', back_populates='repost_owner')
+from apps.db.database import Base
 
 
 class Post(Base):

@@ -7,17 +7,13 @@ services:
       - "5432:5432"
     env_file:
       - .env
-#    environment:
-#      POSTGRES_PASSWORD: 1234
-#      POSTGRES_USER: admin
-#      POSTGRES_DB: social_network
     volumes:
       - pgdata:/var/lib/postgresql/data/
       - .:/docker-entrypoint-initdb.d
       - ./logs:/var/log
     restart: always
   web:
-    build: app/
+    build: apps/
     depends_on:
       - db
     restart: always
@@ -26,7 +22,7 @@ services:
     env_file:
       - .env
     volumes:
-      - app/:/code/
+      - apps/:/code/
       - static:/static
     command: uvicorn main:app --reload --workers 1 --host 0.0.0.0 --port 8000
 
