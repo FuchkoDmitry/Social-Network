@@ -4,7 +4,7 @@ import sqlalchemy as sq
 from sqlalchemy.orm import relationship
 from sqlalchemy_utils.types.choice import ChoiceType
 
-from apps.db.database import Base
+from social_network.db.database import Base
 
 
 followers = sq.Table(

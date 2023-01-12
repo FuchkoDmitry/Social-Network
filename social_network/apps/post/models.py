@@ -2,7 +2,7 @@ from datetime import datetime
 
 import sqlalchemy as sq
 from sqlalchemy.orm import relationship
-from apps.db.database import Base
+from social_network.db.database import Base
 
 
 class Post(Base):
@@ -33,7 +33,7 @@ class Comment(Base):
     parent_comment = sq.Column(sq.Integer, sq.ForeignKey('comment.id'), nullable=True)
 
     comment_owner = relationship('User', back_populates='comments')
-    post = relationship('Post', backpopulates='comments')
+    post = relationship('Post', back_populates='comments')
 
 
 class Like(Base):

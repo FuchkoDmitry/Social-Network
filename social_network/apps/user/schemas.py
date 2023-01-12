@@ -4,6 +4,8 @@ from enum import Enum
 from email_validator import validate_email, EmailNotValidError
 from pydantic import BaseModel, validator, Field, EmailStr
 
+from social_network.apps.post import schemas
+
 
 class Gender(str, Enum):
     M = 'male'
@@ -39,9 +41,6 @@ class UserBase(BaseModel):
             raise ValueError('Birthday can not be in future.')
         return v
 
-    class Config:
-        orm_mode = True
-
 
 class CreateUser(UserBase):
     email: EmailStr
@@ -54,7 +53,7 @@ class CreateUser(UserBase):
 
     @validator('confirm_password')
     def password_match(cls, v, values, **kwargs):
-        if 'password' in values and v != values['password']:
+        if 'PG_PASSWORD' in values and v != values['PG_PASSWORD']:
             raise ValueError('passwords do not match')
         return v
 
@@ -66,3 +65,23 @@ class CreateUser(UserBase):
         except EmailNotValidError as e:
             print(str(e))
         return v
+
+
+class Follower(UserBase):
+    class Config:
+        orm_mode = True
+
+
+class Followed(UserBase):
+    class Config:
+        orm_mode = True
+
+
+class User(UserBase):
+    # posts etc
+    posts: list[schemas.Post] | []
+    followers: list[Follower] | []
+    followed: list[Followed] | []
+
+    class Config:
+        orm_mode = True
