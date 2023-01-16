@@ -4,7 +4,20 @@ from enum import Enum
 from email_validator import validate_email, EmailNotValidError
 from pydantic import BaseModel, validator, Field, EmailStr
 
-from social_network.apps.post import schemas
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+
+class TokenData(BaseModel):
+    username: str | None
+
+
+class UserToken(BaseModel):
+    username: str
+    email: str
+    is_active: bool = False
 
 
 class Gender(str, Enum):
@@ -20,26 +33,8 @@ class Role(str, Enum):
 class UserBase(BaseModel):
     username: str = Field(..., max_length=50)
     photo: str | None = None
-    dob: date | None = None
+    dob: date | None = Field(default=None, description='YYYY-MM-DD')
     gender: Gender | None = None
-
-    @validator("dob", pre=True)
-    def parse_birthdate(cls, value):
-        '''
-        привести строку с датой в формат date.
-        обратный перевод: datetime.strftime(date(1988, 6, 28), "%d-%m-%Y")
-        '''
-        if isinstance(value, str):
-            return datetime.strptime(
-                value,
-                "%d-%m-%Y"
-            ).date()
-
-    @validator('dob')
-    def birthdate_not_in_future_validation(cls, v):
-        if v > date.today():
-            raise ValueError('Birthday can not be in future.')
-        return v
 
 
 class CreateUser(UserBase):
@@ -53,7 +48,7 @@ class CreateUser(UserBase):
 
     @validator('confirm_password')
     def password_match(cls, v, values, **kwargs):
-        if 'PG_PASSWORD' in values and v != values['PG_PASSWORD']:
+        if 'password' in values and v != values['password']:
             raise ValueError('passwords do not match')
         return v
 
@@ -64,6 +59,12 @@ class CreateUser(UserBase):
             v = validation.email
         except EmailNotValidError as e:
             print(str(e))
+        return v
+
+    @validator('dob')
+    def birthdate_not_in_future_validation(cls, v):
+        if v > date.today():
+            raise ValueError('Birthday can not be in future.')
         return v
 
 
@@ -79,9 +80,16 @@ class Followed(UserBase):
 
 class User(UserBase):
     # posts etc
-    posts: list[schemas.Post] | []
-    followers: list[Follower] | []
-    followed: list[Followed] | []
+    # posts: list[schemas.Post]
+    # followers: list[Follower] = []
+    # followed: list[Followed] = []
+    # dob: str
+    registration_at: datetime
 
     class Config:
         orm_mode = True
+
+    @validator("dob")
+    def date_converter(cls, v):
+        if v:
+            return datetime.strftime(v, "%d-%m-%Y")

@@ -4,7 +4,11 @@ import sqlalchemy as sq
 from sqlalchemy.orm import relationship
 from sqlalchemy_utils.types.choice import ChoiceType
 
+from social_network.apps.post.models import Post
 from social_network.db.database import Base
+
+# from ..post.models import Post
+# from ..post import models as post_models
 
 
 followers = sq.Table(
@@ -22,8 +26,8 @@ class User(Base):
         ('user', 'User')
     ]
     GENDER = [
-        ('M', 'Male'),
-        ('F', 'Female')
+        ('male', 'male'),
+        ('female', 'female')
     ]
 
     __tablename__ = 'user'
@@ -51,7 +55,7 @@ class User(Base):
         lazy='dynamic'
         )
 
-    posts = relationship('Post', back_populates="post_owner")
+    posts = relationship(Post, back_populates="post_owner")
     comments = relationship('Comment', back_populates='comment_owner')
     liked_posts = relationship('Like', back_populates='like_owner')
     reposts = relationship('Repost', back_populates='repost_owner')

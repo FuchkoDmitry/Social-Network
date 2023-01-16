@@ -7,7 +7,7 @@ from social_network.db.database import Base
 
 class Post(Base):
 
-    __tablename__ = 'post'
+    __tablename__ = 'posts'
 
     id = sq.Column(sq.Integer, primary_key=True, autoincrement=True)
     title = sq.Column(sq.String(80), nullable=False, index=True)
@@ -33,7 +33,7 @@ class Comment(Base):
     parent_comment = sq.Column(sq.Integer, sq.ForeignKey('comment.id'), nullable=True)
 
     comment_owner = relationship('User', back_populates='comments')
-    post = relationship('Post', back_populates='comments')
+    post = relationship(Post, back_populates='comments')
 
 
 class Like(Base):

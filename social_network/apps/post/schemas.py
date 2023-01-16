@@ -33,7 +33,7 @@ class Post(BasePost):
     owner_id: int
 
     # comments: list[Comment] | []
-    post_likes: list[Like] | []
+    post_likes: list[Like]
     # reposts: list[Repost] | []
 
     class Config:
