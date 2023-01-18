@@ -30,6 +30,7 @@ class BasePost(BaseModel):
 
 
 class Post(BasePost):
+    id: int
     owner_id: int
 
     # comments: list[Comment] | []
