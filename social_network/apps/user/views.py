@@ -1,13 +1,13 @@
 from datetime import timedelta
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from starlette import status
 
 # from . import schemas, crud, security
-from social_network.apps.user import schemas, crud, security
-from social_network.db.database import get_db
+from social_network.apps.user import schemas, crud, security, tasks
+from social_network.core.database import get_db
 
 # from ...db.database import get_db
 
@@ -19,11 +19,17 @@ router = APIRouter(
 
 
 @router.post('/', response_model=schemas.User)
-def create_user(user: schemas.CreateUser, db: Session = Depends(get_db)):
-    db_user = crud.user_exists(db, user.email, user.username)
+def create_user(user: schemas.CreateUser, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
+    db_user = crud.user_exists(db, user.username)
     if db_user:
         raise HTTPException(status_code=400, detail="user with this Email or username already registered")
+    background_tasks.add_task(tasks.registration_email_task, user.email)
     return crud.create_user(db, user)
+
+
+@router.get("/me/")
+async def read_users_me(current_user: schemas.User = Depends(crud.get_current_user)):
+    return current_user
 
 
 @router.get('/{user_id}', response_model=schemas.User)
@@ -54,3 +60,6 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
         data={"sub": user.username}, expires_delta=access_token_expires
     )
     return {"access_token": access_token, "token_type": "bearer"}
+
+
+

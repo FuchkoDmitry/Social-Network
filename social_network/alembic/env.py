@@ -6,7 +6,7 @@ from sqlalchemy import pool
 from alembic import context
 
 sys.path = ['', '..'] + sys.path[1:]
-from social_network.db.database import Base, PG_USER, PG_PASSWORD, PG_DB
+from social_network.core.database import Base, PG_USER, PG_PASSWORD, PG_DB
 from social_network.apps.user.models import *
 from social_network.apps.post.models import *
 

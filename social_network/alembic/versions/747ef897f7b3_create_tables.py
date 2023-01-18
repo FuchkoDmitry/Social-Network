@@ -1,8 +1,8 @@
-"""AddTables
+"""create tables
 
-Revision ID: d7af450f4ee3
+Revision ID: 747ef897f7b3
 Revises: 7bf5572953f3
-Create Date: 2023-01-12 00:32:59.251356
+Create Date: 2023-01-17 20:23:02.027791
 
 """
 import sqlalchemy_utils
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 from social_network.apps.user.models import User
 
 # revision identifiers, used by Alembic.
-revision = 'd7af450f4ee3'
+revision = '747ef897f7b3'
 down_revision = '7bf5572953f3'
 branch_labels = None
 depends_on = None
@@ -45,7 +45,7 @@ def upgrade() -> None:
                     sa.ForeignKeyConstraint(['follower_id'], ['user.id'], ),
                     sa.PrimaryKeyConstraint('follower_id', 'followed_id')
                     )
-    op.create_table('post',
+    op.create_table('posts',
                     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
                     sa.Column('title', sa.String(length=80), nullable=False),
                     sa.Column('content', sa.Text(), nullable=True),
@@ -55,7 +55,7 @@ def upgrade() -> None:
                     sa.ForeignKeyConstraint(['owner_id'], ['user.id'], ),
                     sa.PrimaryKeyConstraint('id')
                     )
-    op.create_index(op.f('ix_post_title'), 'post', ['title'], unique=False)
+    op.create_index(op.f('ix_posts_title'), 'posts', ['title'], unique=False)
     op.create_table('comment',
                     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
                     sa.Column('content', sa.Text(), nullable=False),
@@ -65,7 +65,7 @@ def upgrade() -> None:
                     sa.Column('parent_comment', sa.Integer(), nullable=True),
                     sa.ForeignKeyConstraint(['owner_id'], ['user.id'], ),
                     sa.ForeignKeyConstraint(['parent_comment'], ['comment.id'], ),
-                    sa.ForeignKeyConstraint(['post_id'], ['post.id'], ),
+                    sa.ForeignKeyConstraint(['post_id'], ['posts.id'], ),
                     sa.PrimaryKeyConstraint('id')
                     )
     op.create_table('like',
@@ -74,7 +74,7 @@ def upgrade() -> None:
                     sa.Column('owner_id', sa.Integer(), nullable=False),
                     sa.Column('created_at', sa.DateTime(), nullable=True),
                     sa.ForeignKeyConstraint(['owner_id'], ['user.id'], ),
-                    sa.ForeignKeyConstraint(['post_id'], ['post.id'], ),
+                    sa.ForeignKeyConstraint(['post_id'], ['posts.id'], ),
                     sa.PrimaryKeyConstraint('id')
                     )
     op.create_table('repost',
@@ -83,7 +83,7 @@ def upgrade() -> None:
                     sa.Column('owner_id', sa.Integer(), nullable=False),
                     sa.Column('created_at', sa.DateTime(), nullable=True),
                     sa.ForeignKeyConstraint(['owner_id'], ['user.id'], ),
-                    sa.ForeignKeyConstraint(['post_id'], ['post.id'], ),
+                    sa.ForeignKeyConstraint(['post_id'], ['posts.id'], ),
                     sa.PrimaryKeyConstraint('id')
                     )
     # ### end Alembic commands ###
@@ -94,8 +94,8 @@ def downgrade() -> None:
     op.drop_table('repost')
     op.drop_table('like')
     op.drop_table('comment')
-    op.drop_index(op.f('ix_post_title'), table_name='post')
-    op.drop_table('post')
+    op.drop_index(op.f('ix_posts_title'), table_name='posts')
+    op.drop_table('posts')
     op.drop_table('followers')
     op.drop_index(op.f('ix_user_username'), table_name='user')
     op.drop_table('user')

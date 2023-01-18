@@ -4,6 +4,12 @@ from enum import Enum
 from email_validator import validate_email, EmailNotValidError
 from pydantic import BaseModel, validator, Field, EmailStr
 
+from social_network.apps.post import schemas
+
+
+# class EmailSchema(BaseModel):
+#     email: EmailStr
+
 
 class Token(BaseModel):
     access_token: str
@@ -79,12 +85,13 @@ class Followed(UserBase):
 
 
 class User(UserBase):
+    id: int
     # posts etc
     # posts: list[schemas.Post]
     # followers: list[Follower] = []
     # followed: list[Followed] = []
     # dob: str
-    registration_at: datetime
+    # registration_at: datetime
 
     class Config:
         orm_mode = True
