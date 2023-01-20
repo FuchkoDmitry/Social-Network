@@ -14,12 +14,16 @@ class Post(Base):
     content = sq.Column(sq.Text)
     image = sq.Column(sq.String(100))
     created_at = sq.Column(sq.DateTime, default=datetime.now())
+    updated_at = sq.Column(sq.DateTime, nullable=True)
     owner_id = sq.Column(sq.Integer, sq.ForeignKey('user.id'), nullable=False)
 
     post_owner = relationship('User', back_populates='posts')
     comments = relationship('Comment', back_populates='post', cascade='all,delete')
     post_likes = relationship('Like', back_populates='post_owner', cascade='all,delete')
     reposts = relationship('Repost', back_populates='post', cascade='all,delete')
+
+    def likes_count(self):
+        return len(self.post_likes)
 
 
 class Comment(Base):

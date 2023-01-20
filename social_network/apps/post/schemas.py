@@ -29,13 +29,23 @@ class BasePost(BaseModel):
     image: str | None
 
 
+class PostUpdate(BasePost):
+    image: str
+
+
+class PostPartialUpdate(BasePost):
+    title: str | None = Field(max_length=80)
+    content: str | None
+
+
 class Post(BasePost):
     id: int
     owner_id: int
-
-    # comments: list[Comment] | []
+    likes_count: int
+    comments: list[Comment]
     post_likes: list[Like]
-    # reposts: list[Repost] | []
+    # likes_count: int
+    reposts: list[Repost]
 
     class Config:
         orm_mode = True

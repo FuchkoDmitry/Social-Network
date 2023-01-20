@@ -5,11 +5,9 @@ from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from starlette import status
 
-# from . import schemas, crud, security
 from social_network.apps.user import schemas, crud, security, tasks
 from social_network.core.database import get_db
 
-# from ...db.database import get_db
 
 router = APIRouter(
     prefix="/users",
@@ -59,7 +57,4 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
     access_token = security.create_access_token(
         data={"sub": user.username}, expires_delta=access_token_expires
     )
-    return {"access_token": access_token, "token_type": "bearer"}
-
-
-
+    return {"access_token": access_token, "token_type": "Bearer"}
