@@ -1,4 +1,5 @@
-from pydantic import BaseModel, Field
+
+from pydantic import BaseModel, Field, EmailStr
 
 
 class Like(BaseModel):
@@ -51,9 +52,19 @@ class Post(BasePost):
         orm_mode = True
 
 
+class PostOwner(BaseModel):
+    id: int
+    email: EmailStr
+
+    class Config:
+        orm_mode = True
+
+
 class PostDetail(BasePost):
+    post_owner: PostOwner
     comments: list[Comment]
     post_likes: list[Like]
+    post_dislikes: list[Dislike]
     reposts: list[Repost]
 
     class Config:
@@ -64,13 +75,6 @@ class PostCreate(BasePost):
     pass
 
 
-class CreateLike(BaseModel):
-    post_id: int  # привязать к посту
-
-
 class CreateComment(BaseComment):
     post_id: int
-
-
-class CreateRepost(CreateLike):
-    pass
+    content: str

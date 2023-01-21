@@ -43,12 +43,33 @@ def partial_update_post(db: Session, post_id: int, updated_data: schemas.PostPar
     db.commit()
 
 
+def reaction_exists(db: Session, post_id: int, user_id: int, model):
+    return db.query(model).filter(
+        model.post_id == post_id, model.owner_id == user_id
+    ).first()
+
+
 def add_like(db: Session, post_id: int, user_id: int):
-    like = db.query(models.Like).filter(
-        models.Like.post_id == post_id, models.Like.owner_id == user_id).first()
+    like = reaction_exists(db, post_id, user_id, models.Like)
+    dislike = reaction_exists(db, post_id, user_id, models.Dislike)
     if like:
         db.delete(like)
     else:
+        if dislike:
+            db.delete(dislike)
         like = models.Like(post_id=post_id, owner_id=user_id)
         db.add(like)
+    db.commit()
+
+
+def add_dislike(db: Session, post_id: int, user_id: int):
+    dislike = reaction_exists(db, post_id, user_id, models.Dislike)
+    like = reaction_exists(db, post_id, user_id, models.Like)
+    if dislike:
+        db.delete(dislike)
+    else:
+        if like:
+            db.delete(like)
+        dislike = models.Dislike(post_id=post_id, owner_id=user_id)
+        db.add(dislike)
     db.commit()

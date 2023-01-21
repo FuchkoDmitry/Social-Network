@@ -7,10 +7,6 @@ from pydantic import BaseModel, validator, Field, EmailStr
 from social_network.apps.post import schemas
 
 
-# class EmailSchema(BaseModel):
-#     email: EmailStr
-
-
 class Token(BaseModel):
     access_token: str
     token_type: str
@@ -41,6 +37,18 @@ class UserBase(BaseModel):
     photo: str | None = None
     dob: date | None = Field(default=None, description='YYYY-MM-DD')
     gender: Gender | None = None
+
+
+class User(UserBase):
+    id: int
+
+    class Config:
+        orm_mode = True
+
+    @validator("dob")
+    def date_converter(cls, v):
+        if v:
+            return datetime.strftime(v, "%d-%m-%Y")
 
 
 class CreateUser(UserBase):
@@ -86,14 +94,14 @@ class Followed(UserBase):
         orm_mode = True
 
 
-class User(UserBase):
+class UserDetail(UserBase):
     id: int
-    # posts etc
+    firstname: str | None
+    lastname: str | None
+    email: EmailStr | None
     posts: list[schemas.Post]
     reposts: list[schemas.Repost]
     followers: list[Follower]
-    # followed: list[Followed]
-    # registration_at: datetime
 
     class Config:
         orm_mode = True

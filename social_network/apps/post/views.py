@@ -108,3 +108,24 @@ def add_like(
         raise HTTPException(status_code=HTTP_400_BAD_REQUEST, detail="Forbidden. It's your post")
     crud.add_like(db, post_id, user.id)
     return JSONResponse({"message": "Success"}, status_code=201)
+
+
+@router.post(
+    '/{post_id}/dislike',
+    responses={400: {"description": "Forbidden. It's your post"}},
+    name="Add/Remove dislike",
+    status_code=201
+)
+def add_dislike(
+        post_id: int,
+        user: user_schemas.User = Depends(user_crud.get_current_user),
+        db: Session = Depends(get_db)
+):
+    post = crud.get_post(db, post_id)
+    if post is None:
+        raise HTTPException(status_code=HTTP_404_NOT_FOUND)
+    is_owner = permissions.post_owner(user, post)
+    if is_owner:
+        raise HTTPException(status_code=HTTP_400_BAD_REQUEST, detail="Forbidden. It's your post")
+    crud.add_dislike(db, post_id, user.id)
+    return JSONResponse({"message": "Success"}, status_code=201)
