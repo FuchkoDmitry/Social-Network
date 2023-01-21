@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from starlette.responses import JSONResponse
-from starlette.status import HTTP_404_NOT_FOUND, HTTP_403_FORBIDDEN
+from starlette.status import HTTP_404_NOT_FOUND, HTTP_403_FORBIDDEN, HTTP_400_BAD_REQUEST
 
 from social_network.apps.post import schemas, crud, permissions
 from social_network.apps.user import (
@@ -28,6 +28,14 @@ def create_post(
 @router.get("/", response_model=list[schemas.Post])
 def get_posts(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     return crud.get_posts(db, skip, limit)
+
+
+@router.get("/{post_id}", response_model=schemas.PostDetail)
+def get_post(post_id: int, db: Session = Depends(get_db)):
+    post = crud.get_post(db, post_id)
+    if post is None:
+        raise HTTPException(status_code=HTTP_404_NOT_FOUND)
+    return post
 
 
 @router.delete('/{post_id}', status_code=204)
@@ -79,3 +87,24 @@ def partial_update_post(
         raise HTTPException(status_code=HTTP_403_FORBIDDEN)
     crud.partial_update_post(db, post_id, updated_data)
     return post
+
+
+@router.post(
+    '/{post_id}/like',
+    responses={400: {"description": "Forbidden. It's your post"}},
+    name="Add/Remove like",
+    status_code=201
+)
+def add_like(
+        post_id: int,
+        user: user_schemas.User = Depends(user_crud.get_current_user),
+        db: Session = Depends(get_db),
+):
+    post = crud.get_post(db, post_id)
+    if post is None:
+        raise HTTPException(status_code=HTTP_404_NOT_FOUND)
+    is_owner = permissions.post_owner(user, post)
+    if is_owner:
+        raise HTTPException(status_code=HTTP_400_BAD_REQUEST, detail="Forbidden. It's your post")
+    crud.add_like(db, post_id, user.id)
+    return JSONResponse({"message": "Success"}, status_code=201)

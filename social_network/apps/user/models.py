@@ -58,6 +58,7 @@ class User(Base):
     posts = relationship(Post, back_populates="post_owner")
     comments = relationship('Comment', back_populates='comment_owner')
     liked_posts = relationship('Like', back_populates='like_owner')
+    disliked_posts = relationship('Dislike', back_populates='dislike_owner')
     reposts = relationship('Repost', back_populates='repost_owner')
 
     def fullname(self):

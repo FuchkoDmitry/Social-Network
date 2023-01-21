@@ -25,7 +25,7 @@ def create_user(user: schemas.CreateUser, background_tasks: BackgroundTasks, db:
     return crud.create_user(db, user)
 
 
-@router.get("/me/")
+@router.get("/me/", response_model=schemas.User)
 async def read_users_me(current_user: schemas.User = Depends(crud.get_current_user)):
     return current_user
 

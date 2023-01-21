@@ -41,3 +41,14 @@ def partial_update_post(db: Session, post_id: int, updated_data: schemas.PostPar
         {"updated_at": datetime.now(), **updated_data.dict(exclude_unset=True)}
     )
     db.commit()
+
+
+def add_like(db: Session, post_id: int, user_id: int):
+    like = db.query(models.Like).filter(
+        models.Like.post_id == post_id, models.Like.owner_id == user_id).first()
+    if like:
+        db.delete(like)
+    else:
+        like = models.Like(post_id=post_id, owner_id=user_id)
+        db.add(like)
+    db.commit()

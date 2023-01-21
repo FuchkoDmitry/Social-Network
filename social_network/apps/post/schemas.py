@@ -8,22 +8,24 @@ class Like(BaseModel):
         orm_mode = True
 
 
+class Dislike(Like):
+    pass
+
+
 class Repost(Like):
     pass
+
+
+class Comment(Like):
+    content: str
 
 
 class BaseComment(BaseModel):
     content: str
 
 
-class Comment(BaseComment):
-    owner_id: int
-
-    class Config:
-        orm_model = True
-
-
 class BasePost(BaseModel):
+    id: int | None
     title: str = Field(..., max_length=80)
     content: str
     image: str | None
@@ -39,12 +41,19 @@ class PostPartialUpdate(BasePost):
 
 
 class Post(BasePost):
-    id: int
     owner_id: int
     likes_count: int
+    dislikes_count: int
+    comments_count: int
+    reposts_count: int
+
+    class Config:
+        orm_mode = True
+
+
+class PostDetail(BasePost):
     comments: list[Comment]
     post_likes: list[Like]
-    # likes_count: int
     reposts: list[Repost]
 
     class Config:

@@ -75,6 +75,8 @@ class CreateUser(UserBase):
 
 
 class Follower(UserBase):
+    id: int
+
     class Config:
         orm_mode = True
 
@@ -87,10 +89,10 @@ class Followed(UserBase):
 class User(UserBase):
     id: int
     # posts etc
-    # posts: list[schemas.Post]
-    # followers: list[Follower] = []
-    # followed: list[Followed] = []
-    # dob: str
+    posts: list[schemas.Post]
+    reposts: list[schemas.Repost]
+    followers: list[Follower]
+    # followed: list[Followed]
     # registration_at: datetime
 
     class Config:
