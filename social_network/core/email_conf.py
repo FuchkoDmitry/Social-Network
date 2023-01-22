@@ -5,6 +5,8 @@ from fastapi_mail import ConnectionConfig, FastMail
 
 load_dotenv()
 
+email_check_api_key = os.environ.get('EMAIL_CHECK_API_KEY')
+
 conf = ConnectionConfig(
     MAIL_USERNAME=os.environ.get('MAIL_USERNAME'),
     MAIL_PASSWORD=os.environ.get('MAIL_PASSWORD'),

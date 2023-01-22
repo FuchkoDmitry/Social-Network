@@ -1,8 +1,7 @@
 
 import uvicorn
-from fastapi import FastAPI, Request, Depends
+from fastapi import FastAPI
 
-from apps.user.crud import get_current_user, get_current_active_user
 from apps.user.views import router as user_router
 from apps.post.views import router as posts_router
 

@@ -7,7 +7,7 @@ from pydantic import EmailStr
 from sqlalchemy.orm import Session
 from starlette import status
 
-from social_network.apps.user import schemas, crud, security, tasks
+from social_network.apps.user import schemas, crud, security, tasks, utils
 from social_network.core.database import get_db
 
 router = APIRouter(
@@ -49,6 +49,9 @@ def create_user(
         user.photo = photo
     else:
         raise HTTPException(status_code=400, detail="Incorrect photo type(image needed)")
+
+    if not utils.valid_mail(email):
+        raise HTTPException(status_code=400, detail="Input a valid email address")
     background_tasks.add_task(tasks.registration_email_task, user.email)
     return crud.create_user(db, user)
 
