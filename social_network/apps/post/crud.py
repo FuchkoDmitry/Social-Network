@@ -29,7 +29,7 @@ def delete_post(db: Session, post: schemas.Post):
     db.commit()
 
 
-def update_post(db: Session, post_id: int, updated_data: schemas.PostUpdate):
+def update_post(db: Session, post_id: int, updated_data: schemas.BasePost):
     db.query(models.Post).where(models.Post.id == post_id).update(
         {"updated_at": datetime.now(), **updated_data.dict()}
     )

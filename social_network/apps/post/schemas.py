@@ -1,5 +1,6 @@
-
-from pydantic import BaseModel, Field, EmailStr
+from fastapi import HTTPException
+from pydantic import BaseModel, Field, EmailStr, root_validator, ValidationError
+from starlette.status import HTTP_400_BAD_REQUEST
 
 
 class Like(BaseModel):
@@ -32,13 +33,17 @@ class BasePost(BaseModel):
     image: str | None
 
 
-class PostUpdate(BasePost):
-    image: str
-
-
 class PostPartialUpdate(BasePost):
     title: str | None = Field(max_length=80)
     content: str | None
+    image: str | None
+
+    @root_validator()
+    def exclude_none_values(cls, field_values):
+        field_values = {key: value for key, value in field_values.items() if value is not None}
+        if not field_values:
+            raise HTTPException(status_code=HTTP_400_BAD_REQUEST, detail="You need to pass at least one value")
+        return field_values
 
 
 class Post(BasePost):

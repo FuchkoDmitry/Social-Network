@@ -1,8 +1,8 @@
 from fastapi import Depends, HTTPException
 from jose import jwt, JWTError
+from sqlalchemy import or_
 from sqlalchemy.orm import Session
 from starlette import status
-
 
 from social_network.apps.user import models, schemas, security
 from social_network.core.database import get_db
@@ -16,7 +16,12 @@ def get_users(db: Session, skip: int = 0, limit: int = 100):
     return db.query(models.User).offset(skip).limit(limit).all()
 
 
-def user_exists(db: Session, username: str | None):
+def user_exists(db: Session, username: str | None, email: str | None = None):
+    if email:
+        return db.query(models.User).filter(or_(
+            models.User.username == username,
+            models.User.email == email
+        )).first()
     return db.query(models.User).filter(models.User.username == username).first()
 
 

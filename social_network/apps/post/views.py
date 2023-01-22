@@ -1,4 +1,6 @@
-from fastapi import APIRouter, Depends, HTTPException
+import shutil
+
+from fastapi import APIRouter, Depends, HTTPException, Form, UploadFile, File
 from sqlalchemy.orm import Session
 from starlette.responses import JSONResponse
 from starlette.status import HTTP_404_NOT_FOUND, HTTP_403_FORBIDDEN, HTTP_400_BAD_REQUEST
@@ -19,9 +21,19 @@ router = APIRouter(
 
 @router.post("/", response_model=schemas.Post, status_code=201)
 def create_post(
-        post: schemas.PostCreate,
         user: user_schemas.User = Depends(user_crud.get_current_user),
-        db: Session = Depends(get_db)):
+        title: str = Form(),
+        content: str = Form(),
+        image: UploadFile = File(default=None),
+        db: Session = Depends(get_db)
+):
+    post = schemas.PostCreate(title=title, content=content, owner_id=user.id)
+    if image:
+        with open(f'media/{user.username}_{image.filename}', 'wb') as buffer:
+            shutil.copyfileobj(image.file, buffer)
+        post.image = image.filename
+    else:
+        post.image = None
     return crud.create_post(db, post, user.id)
 
 
@@ -58,34 +70,59 @@ def delete_post(
 @router.put('/{post_id}', status_code=200, response_model=schemas.Post)
 def update_post(
         post_id: int,
-        updated_data: schemas.PostUpdate,
+        title: str = Form(),
+        content: str = Form(),
+        image: UploadFile = File(default=None),
         user: user_schemas.User = Depends(user_crud.get_current_user),
         db: Session = Depends(get_db)
 ):
     post = crud.get_post(db, post_id)
     if post is None:
         raise HTTPException(status_code=HTTP_404_NOT_FOUND)
+
     is_owner = permissions.post_owner(user, post)
     if not is_owner:
         raise HTTPException(status_code=HTTP_403_FORBIDDEN)
-    crud.update_post(db, post_id, updated_data)
+
+    updated_post = schemas.BasePost(id=post.id, title=title, content=content)
+    if image:
+        with open(f'media/{user.username}_{image.filename}', 'wb') as buffer:
+            shutil.copyfileobj(image.file, buffer)
+        updated_post.image = image.filename
+    else:
+        updated_post.image = None
+
+    crud.update_post(db, post_id, updated_post)
     return post
 
 
 @router.patch('/{post_id}', status_code=200, response_model=schemas.Post)
 def partial_update_post(
         post_id: int,
-        updated_data: schemas.PostPartialUpdate,
+        title: str = Form(default=None),
+        content: str = Form(default=None),
+        image: UploadFile = File(default=None),
         user: user_schemas.User = Depends(user_crud.get_current_user),
         db: Session = Depends(get_db)
 ):
     post = crud.get_post(db, post_id)
     if post is None:
         raise HTTPException(status_code=HTTP_404_NOT_FOUND)
+
     is_owner = permissions.post_owner(user, post)
     if not is_owner:
         raise HTTPException(status_code=HTTP_403_FORBIDDEN)
-    crud.partial_update_post(db, post_id, updated_data)
+
+    if image:
+        with open(f'media/{user.username}_{image.filename}', 'wb') as buffer:
+            shutil.copyfileobj(image.file, buffer)
+        image = image.filename
+    else:
+        image = None
+
+    updated_post = schemas.PostPartialUpdate(title=title, content=content, image=image)
+    updated_post.id = post.id
+    crud.partial_update_post(db, post_id, updated_post)
     return post
 
 

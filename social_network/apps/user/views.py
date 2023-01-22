@@ -1,13 +1,14 @@
-from datetime import timedelta
+import shutil
+from datetime import timedelta, date
 
-from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
+from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks, Form, UploadFile, File
 from fastapi.security import OAuth2PasswordRequestForm
+from pydantic import EmailStr
 from sqlalchemy.orm import Session
 from starlette import status
 
 from social_network.apps.user import schemas, crud, security, tasks
 from social_network.core.database import get_db
-
 
 router = APIRouter(
     prefix="/users",
@@ -17,10 +18,37 @@ router = APIRouter(
 
 
 @router.post('/', response_model=schemas.User)
-def create_user(user: schemas.CreateUser, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
-    db_user = crud.user_exists(db, user.username)
+def create_user(
+        background_tasks: BackgroundTasks,
+        username: str = Form(),
+        photo: UploadFile = File(default=None),
+        dob: date | None = Form(default=None),
+        gender: schemas.Gender | None = Form(default=None),
+        email: EmailStr = Form(),
+        password: str = Form(),
+        confirm_password: str = Form(),
+        firstname: str | None = Form(default=None),
+        lastname: str | None = Form(default=None),
+        db: Session = Depends(get_db)
+):
+    db_user = crud.user_exists(db, username, email)
     if db_user:
         raise HTTPException(status_code=400, detail="user with this Email or username already registered")
+
+    user = schemas.CreateUser(
+        username=username, dob=dob, gender=gender,
+        email=email, password=password, confirm_password=confirm_password,
+        firstname=firstname, lastname=lastname
+    )
+
+    if photo and 'image' in photo.content_type:
+        with open(f'media/{username}_{photo.filename}', 'wb') as buffer:
+            shutil.copyfileobj(photo.file, buffer)
+        user.photo = photo.filename
+    elif photo is None:
+        user.photo = photo
+    else:
+        raise HTTPException(status_code=400, detail="Incorrect photo type(image needed)")
     background_tasks.add_task(tasks.registration_email_task, user.email)
     return crud.create_user(db, user)
 
@@ -30,7 +58,7 @@ async def read_users_me(current_user: schemas.UserDetail = Depends(crud.get_curr
     return current_user
 
 
-@router.get('/{user_id}', response_model=schemas.User)
+@router.get('/{user_id}', response_model=schemas.UserDetail)
 def get_user(user_id: int, db: Session = Depends(get_db)):
     db_user = crud.get_user(db, user_id)
     if db_user is None:

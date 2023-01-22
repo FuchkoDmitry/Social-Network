@@ -1,8 +1,11 @@
+import re
 from datetime import date, datetime
 from enum import Enum
 
 from email_validator import validate_email, EmailNotValidError
+from fastapi import HTTPException
 from pydantic import BaseModel, validator, Field, EmailStr
+from starlette.status import HTTP_422_UNPROCESSABLE_ENTITY, HTTP_400_BAD_REQUEST
 
 from social_network.apps.post import schemas
 
@@ -63,7 +66,10 @@ class CreateUser(UserBase):
     @validator('confirm_password')
     def password_match(cls, v, values, **kwargs):
         if 'password' in values and v != values['password']:
-            raise ValueError('passwords do not match')
+            raise HTTPException(
+                status_code=HTTP_400_BAD_REQUEST,
+                detail='passwords do not match'
+            )
         return v
 
     @validator('email')
@@ -77,8 +83,22 @@ class CreateUser(UserBase):
 
     @validator('dob')
     def birthdate_not_in_future_validation(cls, v):
-        if v > date.today():
-            raise ValueError('Birthday can not be in future.')
+        if v is not None:
+            if v > date.today():
+                raise HTTPException(
+                    status_code=HTTP_400_BAD_REQUEST,
+                    detail='Birthday can not be in future.'
+                )
+        return v
+
+    @validator('password', pre=True)
+    def strong_password(cls, v):
+        if re.search("^(?=(.*\d){2})(?=.*[a-z])(?=.*[A-Z])(?=.*[^a-zA-Z\d]).{,}$", v) is None:
+            raise HTTPException(
+                status_code=HTTP_422_UNPROCESSABLE_ENTITY,
+                detail='Your password is to easy. Use lowercase and upper case letters, '
+                'numbers and special characters(min 10 symbols)'
+            )
         return v
 
 
