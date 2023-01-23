@@ -1,6 +1,6 @@
 
-from social_network.apps.user import schemas as user_schemas
-from social_network.apps.post import schemas, models
+from ..user import schemas as user_schemas
+from . import schemas
 
 
 def post_owner(owner: user_schemas.User, post: schemas.Post):

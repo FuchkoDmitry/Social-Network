@@ -1,8 +1,10 @@
 from datetime import datetime
 
 from sqlalchemy.orm import Session
-from social_network.apps.post import schemas, models
-from social_network.apps.user import (
+
+from . import schemas, models
+
+from ..user import (
     schemas as user_schemas,
     models as user_models
 )

@@ -1,9 +1,9 @@
 from datetime import datetime
 
 import sqlalchemy as sq
-# from sqlalchemy import select
 from sqlalchemy.orm import relationship, column_property
-from social_network.core.database import Base
+
+from core.database import Base
 
 
 class Like(Base):

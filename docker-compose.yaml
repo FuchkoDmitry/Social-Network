@@ -12,19 +12,19 @@ services:
       - .:/docker-entrypoint-initdb.d
       - ./logs:/var/log
     restart: always
-#  web:
-#    build: social_network/apps/
-#    depends_on:
-#      - db
-#    restart: always
-#    ports:
-#      - "8000:8000"
-#    env_file:
-#      - social_network/.env
-#    volumes:
-#      - ../social_network/:/code/
-#      - static:/static
-#    command: uvicorn main:app --reload --workers 1 --host 0.0.0.0 --port 8000
+  web:
+    build: ./social_network
+    depends_on:
+      - db
+    restart: always
+    ports:
+      - "8000:8000"
+    env_file:
+      - social_network/.env
+    volumes:
+      - ./social_network:/social_network/
+      - static:/static
+    command: sh -c "python3 setup.py install --user && uvicorn main:app --workers 1 --host 0.0.0.0 --port 8000"
 
 volumes:
   pgdata:

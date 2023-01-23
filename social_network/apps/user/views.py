@@ -7,8 +7,8 @@ from pydantic import EmailStr
 from sqlalchemy.orm import Session
 from starlette import status
 
-from social_network.apps.user import schemas, crud, security, tasks, utils
-from social_network.core.database import get_db
+from . import schemas, crud, security, tasks, utils
+from core.database import get_db
 
 router = APIRouter(
     prefix="/users",
@@ -41,6 +41,7 @@ def create_user(
         firstname=firstname, lastname=lastname
     )
 
+    #  TODO: save photos in MongoDb
     if photo and 'image' in photo.content_type:
         with open(f'media/{username}_{photo.filename}', 'wb') as buffer:
             shutil.copyfileobj(photo.file, buffer)

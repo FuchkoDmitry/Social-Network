@@ -4,11 +4,8 @@ import sqlalchemy as sq
 from sqlalchemy.orm import relationship
 from sqlalchemy_utils.types.choice import ChoiceType
 
-from social_network.apps.post.models import Post
-from social_network.core.database import Base
-
-# from ..post.models import Post
-# from ..post import models as post_models
+from ..post.models import Post
+from core.database import Base
 
 
 followers = sq.Table(

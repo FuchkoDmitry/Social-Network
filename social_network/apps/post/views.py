@@ -5,12 +5,12 @@ from sqlalchemy.orm import Session
 from starlette.responses import JSONResponse
 from starlette.status import HTTP_404_NOT_FOUND, HTTP_403_FORBIDDEN, HTTP_400_BAD_REQUEST
 
-from social_network.apps.post import schemas, crud, permissions
-from social_network.apps.user import (
+from . import schemas, crud, permissions
+from ..user import (
     schemas as user_schemas,
     crud as user_crud
 )
-from social_network.core.database import get_db
+from core.database import get_db
 
 router = APIRouter(
     prefix="/posts",
@@ -78,11 +78,11 @@ def update_post(
 ):
     post = crud.get_post(db, post_id)
     if post is None:
-        raise HTTPException(status_code=HTTP_404_NOT_FOUND)
+        raise HTTPException(status_code=HTTP_404_NOT_FOUND, detail="Post not found")
 
     is_owner = permissions.post_owner(user, post)
     if not is_owner:
-        raise HTTPException(status_code=HTTP_403_FORBIDDEN)
+        raise HTTPException(status_code=HTTP_403_FORBIDDEN, detail="Forbidden. It's not your post.")
 
     updated_post = schemas.BasePost(id=post.id, title=title, content=content)
     if image:
@@ -107,11 +107,11 @@ def partial_update_post(
 ):
     post = crud.get_post(db, post_id)
     if post is None:
-        raise HTTPException(status_code=HTTP_404_NOT_FOUND)
+        raise HTTPException(status_code=HTTP_404_NOT_FOUND, detail="Post not found")
 
     is_owner = permissions.post_owner(user, post)
     if not is_owner:
-        raise HTTPException(status_code=HTTP_403_FORBIDDEN)
+        raise HTTPException(status_code=HTTP_403_FORBIDDEN, detail="Forbidden. It's not your post.")
 
     if image:
         with open(f'media/{user.username}_{image.filename}', 'wb') as buffer:
@@ -139,7 +139,7 @@ def add_like(
 ):
     post = crud.get_post(db, post_id)
     if post is None:
-        raise HTTPException(status_code=HTTP_404_NOT_FOUND)
+        raise HTTPException(status_code=HTTP_404_NOT_FOUND, detail="Post not found")
     is_owner = permissions.post_owner(user, post)
     if is_owner:
         raise HTTPException(status_code=HTTP_400_BAD_REQUEST, detail="Forbidden. It's your post")
@@ -160,7 +160,7 @@ def add_dislike(
 ):
     post = crud.get_post(db, post_id)
     if post is None:
-        raise HTTPException(status_code=HTTP_404_NOT_FOUND)
+        raise HTTPException(status_code=HTTP_404_NOT_FOUND, detail="Post not found")
     is_owner = permissions.post_owner(user, post)
     if is_owner:
         raise HTTPException(status_code=HTTP_400_BAD_REQUEST, detail="Forbidden. It's your post")

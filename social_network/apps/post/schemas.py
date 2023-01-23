@@ -1,5 +1,5 @@
 from fastapi import HTTPException
-from pydantic import BaseModel, Field, EmailStr, root_validator, ValidationError
+from pydantic import BaseModel, Field, EmailStr, root_validator
 from starlette.status import HTTP_400_BAD_REQUEST
 
 

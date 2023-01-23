@@ -7,7 +7,7 @@ from fastapi import HTTPException
 from pydantic import BaseModel, validator, Field, EmailStr
 from starlette.status import HTTP_422_UNPROCESSABLE_ENTITY, HTTP_400_BAD_REQUEST
 
-from social_network.apps.post import schemas
+from ..post import schemas
 
 
 class Token(BaseModel):

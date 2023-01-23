@@ -1,8 +1,8 @@
 import os
 from datetime import timedelta, datetime
 
-from fastapi.security import OAuth2PasswordBearer, SecurityScopes
-from jose import JWTError, jwt
+from fastapi.security import OAuth2PasswordBearer
+from jose import jwt
 from passlib.context import CryptContext
 from dotenv import load_dotenv
 

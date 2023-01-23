@@ -4,8 +4,8 @@ from sqlalchemy import or_
 from sqlalchemy.orm import Session
 from starlette import status
 
-from social_network.apps.user import models, schemas, security
-from social_network.core.database import get_db
+from . import models, schemas, security
+from core.database import get_db
 
 
 def get_user(db: Session, user_id: int):
