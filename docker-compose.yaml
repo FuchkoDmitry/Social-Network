@@ -24,7 +24,7 @@ services:
     volumes:
       - ./social_network:/social_network/
       - static:/static
-    command: sh -c "python3 setup.py install --user && uvicorn main:app --workers 1 --host 0.0.0.0 --port 8000"
+    command: sh -c "python3 setup.py install --user && uvicorn main:app --reload --workers 1 --host 0.0.0.0 --port 8000"
 
 volumes:
   pgdata:

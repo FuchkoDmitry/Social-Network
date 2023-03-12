@@ -81,8 +81,8 @@ class Post(Base):
         sq.select([sq.func.count(Repost.id)]).filter(Repost.post_id == id).scalar_subquery()
     )
 
-    post_owner = relationship('User', back_populates='posts')
-    comments = relationship(Comment, back_populates='post', cascade='all,delete')
-    post_likes = relationship(Like, back_populates='post_owner', cascade='all,delete')
-    post_dislikes = relationship(Dislike, back_populates='post_owner', cascade='all,delete')
-    reposts = relationship(Repost, back_populates='post', cascade='all,delete')
+    post_owner = relationship('User', back_populates='posts', innerjoin=True)
+    comments = relationship(Comment, back_populates='post', cascade='all,delete', innerjoin=True)
+    post_likes = relationship(Like, back_populates='post_owner', cascade='all,delete', innerjoin=True)
+    post_dislikes = relationship(Dislike, back_populates='post_owner', cascade='all,delete', innerjoin=True)
+    reposts = relationship(Repost, back_populates='post', cascade='all,delete', innerjoin=True)

@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from . import schemas, models
 
@@ -23,7 +23,13 @@ def get_posts(db: Session, skip: int = 0, limit: int = 100):
 
 
 def get_post(db: Session, post_id: int):
-    return db.query(models.Post).get(post_id)
+    return db.query(models.Post).options(
+        joinedload(models.Post.post_owner),
+        joinedload(models.Post.comments),
+        joinedload(models.Post.post_likes),
+        joinedload(models.Post.post_dislikes),
+        joinedload(models.Post.reposts)
+    ).get(post_id)
 
 
 def delete_post(db: Session, post: schemas.Post):

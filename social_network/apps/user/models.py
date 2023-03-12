@@ -12,7 +12,7 @@ followers = sq.Table(
     'followers',
     Base.metadata,
     sq.Column('follower_id', sq.Integer, sq.ForeignKey('user.id'), primary_key=True),
-    sq.Column('followed_id', sq.Integer, sq.ForeignKey('user.id'), primary_key=True)
+    sq.Column('followed_id', sq.Integer, sq.ForeignKey('user.id'), primary_key=True),
 )
 
 
@@ -49,10 +49,10 @@ class User(Base):
         primaryjoin=(followers.c.follower_id == id),
         secondaryjoin=(followers.c.followed_id == id),
         backref='followers',
-        lazy='dynamic'
+        lazy='subquery',
         )
 
-    posts = relationship(Post, back_populates="post_owner")
+    posts = relationship(Post, back_populates="post_owner", innerjoin=True)
     comments = relationship('Comment', back_populates='comment_owner')
     liked_posts = relationship('Like', back_populates='like_owner')
     disliked_posts = relationship('Dislike', back_populates='dislike_owner')

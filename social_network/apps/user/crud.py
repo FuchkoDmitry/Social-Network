@@ -1,7 +1,7 @@
 from fastapi import Depends, HTTPException
 from jose import jwt, JWTError
 from sqlalchemy import or_
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload, lazyload, collections
 from starlette import status
 
 from . import models, schemas, security
@@ -9,7 +9,13 @@ from core.database import get_db
 
 
 def get_user(db: Session, user_id: int):
-    return db.query(models.User).filter(models.User.id == user_id).first()
+    user = db.query(models.User).options(
+        joinedload(models.User.posts),
+        joinedload(models.User.reposts),
+        joinedload(models.User.followers),
+        joinedload(models.User.followed)
+    ).filter(models.User.id == user_id).first()
+    return user
 
 
 def get_users(db: Session, skip: int = 0, limit: int = 100):

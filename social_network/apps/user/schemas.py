@@ -109,7 +109,10 @@ class Follower(UserBase):
         orm_mode = True
 
 
-class Followed(UserBase):
+# class Followed(UserBase):
+class Followed(BaseModel):
+    id: int
+
     class Config:
         orm_mode = True
 
@@ -122,6 +125,7 @@ class UserDetail(UserBase):
     posts: list[schemas.Post]
     reposts: list[schemas.Repost]
     followers: list[Follower]
+    followed: list[Follower]
 
     class Config:
         orm_mode = True
