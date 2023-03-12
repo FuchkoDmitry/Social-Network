@@ -81,3 +81,13 @@ def add_dislike(db: Session, post_id: int, user_id: int):
         dislike = models.Dislike(post_id=post_id, owner_id=user_id)
         db.add(dislike)
     db.commit()
+
+
+def post_repost(db: Session, post_id: int, user_id: int):
+    repost = reaction_exists(db, post_id, user_id, models.Repost)
+    if repost:
+        db.delete(repost)
+    else:
+        repost = models.Repost(post_id=post_id, owner_id=user_id)
+        db.add(repost)
+    db.commit()

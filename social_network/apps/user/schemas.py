@@ -144,7 +144,7 @@ class UserDetail(UserBase):
     lastname: str | None
     email: EmailStr | None
     posts: list[schemas.Post]
-    reposts: list[schemas.Repost]
+    reposts: list[schemas.RepostPosts]
     followers: list[Follower]
     followed: list[Follower]
 

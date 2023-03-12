@@ -1,5 +1,5 @@
 from fastapi import HTTPException
-from pydantic import BaseModel, Field, EmailStr, root_validator
+from pydantic import BaseModel, Field, EmailStr, root_validator, AnyUrl, validator
 from starlette.status import HTTP_400_BAD_REQUEST
 
 
@@ -14,8 +14,26 @@ class Dislike(Like):
     pass
 
 
-class Repost(Like):
-    pass
+class RepostPosts(BaseModel):
+    post_id: int | AnyUrl
+
+    class Config:
+        orm_mode = True
+
+    @validator("post_id")
+    def convert_to_url(cls, v):
+        return f'http://0.0.0.0:8000/posts/{v}'
+
+
+class RepostOwners(BaseModel):
+    owner_id: int | AnyUrl
+
+    class Config:
+        orm_mode = True
+
+    @validator("owner_id")
+    def convert_to_url(cls, v):
+        return f'http://0.0.0.0:8000/users/{v}'
 
 
 class Comment(Like):
@@ -70,7 +88,7 @@ class PostDetail(BasePost):
     comments: list[Comment]
     post_likes: list[Like]
     post_dislikes: list[Dislike]
-    reposts: list[Repost]
+    reposts: list[RepostOwners]
 
     class Config:
         orm_mode = True
