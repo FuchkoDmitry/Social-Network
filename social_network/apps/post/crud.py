@@ -1,6 +1,7 @@
 from datetime import datetime
 
 from sqlalchemy.orm import Session, joinedload
+from sqlalchemy import desc, and_, select
 
 from . import schemas, models
 
@@ -19,21 +20,43 @@ def create_post(db: Session, post: schemas.PostCreate, user_id: int):
 
 
 def get_posts(db: Session, skip: int = 0, limit: int = 100):
-    return db.query(models.Post).offset(skip).limit(limit).all()
+    return db.query(models.Post).filter(models.Post.deleted == False).order_by(
+        desc(models.Post.created_at)).offset(skip).limit(limit).all()
 
 
 def get_post(db: Session, post_id: int):
-    return db.query(models.Post).options(
+    return db.query(models.Post).filter(and_(
+        models.Post.id == post_id,
+        models.Post.deleted == False
+    )).first()
+
+
+def get_post_details(db: Session, post_id: int):
+    # sq = db.query(models.Comment).filter(and_(
+    #     models.Comment.parent_comment == None, models.Comment.post_id == post_id
+    # )).subquery()
+    #  for get only parent comments(without parent_comment attribute)
+    sq = db.query(models.Comment).where(and_(
+        models.Comment.parent_comment == None,
+        models.Comment.post_id == post_id,
+        models.Comment.deleted == False
+    )
+    ).all()
+
+    post = db.query(models.Post).options(
         joinedload(models.Post.post_owner),
         joinedload(models.Post.comments),
         joinedload(models.Post.post_likes),
         joinedload(models.Post.post_dislikes),
-        joinedload(models.Post.reposts)
+        joinedload(models.Post.reposts),
     ).get(post_id)
+    post.comments = sq
+    return post
 
 
 def delete_post(db: Session, post: schemas.Post):
-    db.delete(post)
+    post.deleted = True
+    # db.delete(post)
     db.commit()
 
 
@@ -91,3 +114,16 @@ def post_repost(db: Session, post_id: int, user_id: int):
         repost = models.Repost(post_id=post_id, owner_id=user_id)
         db.add(repost)
     db.commit()
+
+
+def add_comment(
+        db: Session, post_id: int, user_id: int, content: schemas.BaseComment
+):
+    comment = models.Comment(**content.dict(), owner_id=user_id, post_id=post_id)
+    db.add(comment)
+    db.commit()
+
+#  TODO: will add delete/update comment
+# def delete_comment(
+#         db: Session, user_id: int, comment_id: int
+# ):

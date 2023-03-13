@@ -39,9 +39,12 @@ class Comment(Base):
     post_id = sq.Column(sq.Integer, sq.ForeignKey('posts.id'), nullable=False, )
     created_at = sq.Column(sq.DateTime, default=datetime.now())
     parent_comment = sq.Column(sq.Integer, sq.ForeignKey('comment.id'), nullable=True)
+    deleted = sq.Column(sq.Boolean, default=False)
 
     comment_owner = relationship('User', back_populates='comments')
     post = relationship('Post', back_populates='comments')
+
+    child_comment = relationship('Comment', primaryjoin='Comment.parent_comment==Comment.id', uselist=True)
 
 
 class Repost(Base):
@@ -67,6 +70,7 @@ class Post(Base):
     created_at = sq.Column(sq.DateTime, default=datetime.now())
     updated_at = sq.Column(sq.DateTime, nullable=True)
     owner_id = sq.Column(sq.Integer, sq.ForeignKey('user.id'), nullable=False)
+    deleted = sq.Column(sq.Boolean, default=False)
 
     likes_count = column_property(
         sq.select([sq.func.count(Like.id)]).filter(Like.post_id == id).scalar_subquery()
@@ -82,7 +86,7 @@ class Post(Base):
     )
 
     post_owner = relationship('User', back_populates='posts', innerjoin=True)
-    comments = relationship(Comment, back_populates='post', cascade='all,delete')
+    comments = relationship(Comment, back_populates='post', cascade='all,delete', order_by=Comment.created_at)
     post_likes = relationship(Like, back_populates='post_owner', cascade='all,delete')
     post_dislikes = relationship(Dislike, back_populates='post_owner', cascade='all,delete')
     reposts = relationship(Repost, back_populates='post', cascade='all,delete')

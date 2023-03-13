@@ -1,6 +1,11 @@
+from typing import Any
+
 from fastapi import HTTPException
 from pydantic import BaseModel, Field, EmailStr, root_validator, AnyUrl, validator
 from starlette.status import HTTP_400_BAD_REQUEST
+
+
+BASE_URL = "http://127.0.0.1:8000/"
 
 
 class Like(BaseModel):
@@ -22,7 +27,7 @@ class RepostPosts(BaseModel):
 
     @validator("post_id")
     def convert_to_url(cls, v):
-        return f'http://0.0.0.0:8000/posts/{v}'
+        return f'{BASE_URL}posts/{v}'
 
 
 class RepostOwners(BaseModel):
@@ -33,15 +38,22 @@ class RepostOwners(BaseModel):
 
     @validator("owner_id")
     def convert_to_url(cls, v):
-        return f'http://0.0.0.0:8000/users/{v}'
+        return f'{BASE_URL}users/{v}'
 
 
 class Comment(Like):
     content: str
 
 
-class BaseComment(BaseModel):
-    content: str
+class BaseComment(Comment):
+    child_comment: list['BaseComment'] | None = None
+
+    class Config:
+        orm_mode = True
+
+
+#  for get child comments(recursion)
+BaseComment.update_forward_refs()
 
 
 class BasePost(BaseModel):
@@ -85,7 +97,7 @@ class PostOwner(BaseModel):
 
 class PostDetail(BasePost):
     post_owner: PostOwner
-    comments: list[Comment]
+    comments: list[BaseComment]
     post_likes: list[Like]
     post_dislikes: list[Dislike]
     reposts: list[RepostOwners]
@@ -101,3 +113,4 @@ class PostCreate(BasePost):
 class CreateComment(BaseComment):
     post_id: int
     content: str
+

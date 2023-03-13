@@ -44,7 +44,7 @@ def get_posts(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
 
 @router.get("/{post_id}", response_model=schemas.PostDetail)
 def get_post(post_id: int, db: Session = Depends(get_db)):
-    post = crud.get_post(db, post_id)
+    post = crud.get_post_details(db, post_id)
     if post is None:
         raise HTTPException(status_code=HTTP_404_NOT_FOUND)
     return post
@@ -187,3 +187,21 @@ def post_repost(
         raise HTTPException(status_code=HTTP_400_BAD_REQUEST, detail="Forbidden. It's your post")
     crud.post_repost(db, post_id, user.id)
     return JSONResponse({"message": "Success"}, status_code=201)
+
+
+@router.post(
+    '/{post_id}/comment',
+    name="Add comment",
+    status_code=201
+)
+def add_comment(
+        post_id: int,
+        content: schemas.BaseComment,
+        user: user_schemas.User = Depends(user_crud.get_current_user),
+        db: Session = Depends(get_db)
+):
+    post = crud.get_post(db, post_id)
+    if post is None:
+        raise HTTPException(status_code=HTTP_404_NOT_FOUND, detail="Post not found")
+    crud.add_comment(db, post_id, user.id, content)
+    return JSONResponse({"success": "Your comment has been added"}, status_code=201)
