@@ -1,4 +1,3 @@
-import logging
 
 from fastapi import Depends, HTTPException
 from jose import jwt, JWTError
@@ -8,16 +7,7 @@ from starlette import status
 
 from . import models, schemas, security
 from core.database import get_db
-
-
-crud_logger = logging.getLogger(__name__)
-crud_logger.setLevel(logging.INFO)
-
-handler = logging.FileHandler('logs/user_crud_ops.log', mode='w')
-formatter = logging.Formatter('%(name)s %(asctime)s %(levelname)s %(message)s')
-
-handler.setFormatter(formatter)
-crud_logger.addHandler(handler)
+from core.loggers import users_logger
 
 
 def get_user(db: Session, user_id: int):
@@ -56,15 +46,15 @@ def create_user(db: Session, user: schemas.CreateUser):
 
 def authenticate_user(db: Session, username: str, password: str):
     '''аутентификация по email?'''
-    crud_logger.info(f'user {username} try to login')
+    users_logger.info(f'user {username} try to login')
     user = user_exists(db, username=username)
     if not user:
-        crud_logger.warning(f'user {username} not exists')
+        users_logger.warning(f'user {username} not exists!!')
         return False
     if not security.verify_password(password, user.password):
-        crud_logger.exception(f'user {username} login failure(incorrect password)')
+        users_logger.warning(f'user {username} login failure(incorrect password)')
         return False
-    crud_logger.info(f'user {username} login successfully')
+    users_logger.info(f'user {username} login successfully')
     return user
 
 
