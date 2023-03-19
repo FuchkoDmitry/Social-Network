@@ -41,19 +41,32 @@ class RepostOwners(BaseModel):
         return f'{BASE_URL}users/{v}'
 
 
-class Comment(Like):
+class ChangeComment(BaseModel):
+    id: int
     content: str
 
+    class Config:
+        orm_mode = True
 
-class BaseComment(Comment):
-    child_comment: list['BaseComment'] | None = None
+
+class AddComment(BaseModel):
+    '''добавление комментария'''
+    content: str
+    parent_comment: int | None = None
+
+
+class DetailComment(BaseModel):
+    '''отображение комментариев в детальном просмотре поста'''
+    id: int
+    content: str
+    child_comment: list['DetailComment'] | None = None
 
     class Config:
         orm_mode = True
 
 
 #  for get child comments(recursion)
-BaseComment.update_forward_refs()
+DetailComment.update_forward_refs()
 
 
 class BasePost(BaseModel):
@@ -61,6 +74,9 @@ class BasePost(BaseModel):
     title: str = Field(..., max_length=80)
     content: str
     image: str | None
+
+    class Config:
+        orm_mode = True
 
 
 class PostPartialUpdate(BasePost):
@@ -83,8 +99,8 @@ class Post(BasePost):
     comments_count: int
     reposts_count: int
 
-    class Config:
-        orm_mode = True
+    # class Config:
+    #     orm_mode = True
 
 
 class PostOwner(BaseModel):
@@ -97,20 +113,10 @@ class PostOwner(BaseModel):
 
 class PostDetail(BasePost):
     post_owner: PostOwner
-    comments: list[BaseComment]
+    comments: list[DetailComment]
     post_likes: list[Like]
     post_dislikes: list[Dislike]
     reposts: list[RepostOwners]
 
     class Config:
         orm_mode = True
-
-
-class PostCreate(BasePost):
-    pass
-
-
-class CreateComment(BaseComment):
-    post_id: int
-    content: str
-

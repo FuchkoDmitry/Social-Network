@@ -11,7 +11,7 @@ from ..user import (
 )
 
 
-def create_post(db: Session, post: schemas.PostCreate, user_id: int):
+def create_post(db: Session, post: schemas.BasePost, user_id: int):
     new_post = models.Post(**post.dict(), owner_id=user_id)
     db.add(new_post)
     db.commit()
@@ -116,14 +116,18 @@ def post_repost(db: Session, post_id: int, user_id: int):
     db.commit()
 
 
+def comment_exists(db: Session, comment_id: int):
+    return db.query(models.Comment).where(
+        and_(
+            models.Comment.id == comment_id,
+            models.Comment.deleted == False
+        )
+    ).first()
+
+
 def add_comment(
-        db: Session, post_id: int, user_id: int, content: schemas.BaseComment
+        db: Session, post_id: int, user_id: int, content: schemas.AddComment
 ):
     comment = models.Comment(**content.dict(), owner_id=user_id, post_id=post_id)
     db.add(comment)
     db.commit()
-
-#  TODO: will add delete/update comment
-# def delete_comment(
-#         db: Session, user_id: int, comment_id: int
-# ):

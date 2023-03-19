@@ -63,6 +63,7 @@ class CreateUser(UserBase):
     lastname: str | None = Field(default=None, example='Ivanov', max_length=40)
     role: Role = Field(default='user')
     is_open: bool = Field(default=True, description='тип аккаунта')
+    uuid_to_activate: str
 
     @validator('confirm_password')
     def password_match(cls, v, values, **kwargs):

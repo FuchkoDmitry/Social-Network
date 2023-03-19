@@ -1,6 +1,7 @@
 import shutil
 
 from datetime import timedelta, date
+from uuid import uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks, Form, UploadFile, File
 from fastapi.security import OAuth2PasswordRequestForm
@@ -19,7 +20,7 @@ router = APIRouter(
 )
 
 
-@router.post('/', response_model=schemas.User)
+@router.post('/')
 def create_user(
         background_tasks: BackgroundTasks,
         username: str = Form(),
@@ -40,11 +41,11 @@ def create_user(
     if db_user:
         users_logger.warning("user with this Email or username already registered")
         raise HTTPException(status_code=400, detail="user with this Email or username already registered")
-
+    uuid = str(uuid4())
     user = schemas.CreateUser(
         username=username, dob=dob, gender=gender,
         email=email, password=password, confirm_password=confirm_password,
-        firstname=firstname, lastname=lastname
+        firstname=firstname, lastname=lastname, uuid_to_activate=uuid
     )
 
     #  TODO: save photos in MongoDb
@@ -61,11 +62,24 @@ def create_user(
     # if not utils.valid_mail(email):
     #     user_views_logger.exception("Input a valid email address")
     #     raise HTTPException(status_code=400, detail="Input a valid email address")
-    background_tasks.add_task(tasks.registration_email_task, user.email)
+    background_tasks.add_task(tasks.registration_email_task, user.email, uuid)
     users_logger.info(
         f'User with username:{username} and email:{email} registration successfully'
     )
-    return crud.create_user(db, user)
+    crud.create_user(db, user)
+    return {"message": f"Congratulations! Your registration has been successfully. "
+                       f"Activation link has been sent to {email}"
+            }
+
+
+@router.get("/activate/")
+def activate_user(uuid: str, db: Session = Depends(get_db)):
+    user = crud.get_user_by_uuid(db, uuid)
+    if user is None:
+        raise HTTPException(status_code=400, detail="Bad URL")
+    user.is_active = True
+    db.commit()
+    return {"message": f'User "{user.username}" with email "{user.email} activated successfully"'}
 
 
 @router.get("/me/", response_model=schemas.UserDetail)

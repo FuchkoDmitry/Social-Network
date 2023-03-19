@@ -1,6 +1,7 @@
 import shutil
 
 from fastapi import APIRouter, Depends, HTTPException, Form, UploadFile, File
+# from fastapi.openapi.models import Response
 from sqlalchemy.orm import Session
 from starlette.responses import JSONResponse
 from starlette.status import HTTP_404_NOT_FOUND, HTTP_403_FORBIDDEN, HTTP_400_BAD_REQUEST
@@ -12,22 +13,30 @@ from ..user import (
 )
 from core.database import get_db
 
-router = APIRouter(
+posts_router = APIRouter(
     prefix="/posts",
     tags=["posts"],
     responses={404: {"description": "Not Found"}}
 )
 
+comments_router = APIRouter(
+    prefix="/comment",
+    tags=["Change/Delete comment"],
+    responses={404: {"description": "Not Found"}}
+)
 
-@router.post("/", response_model=schemas.Post, status_code=201)
+
+@posts_router.post("/", response_model=schemas.Post, status_code=201)
 def create_post(
-        user: user_schemas.User = Depends(user_crud.get_current_user),
+        # user: user_schemas.User = Depends(user_crud.get_current_user),
+        user: user_schemas.User = Depends(user_crud.get_current_active_user),
         title: str = Form(),
         content: str = Form(),
         image: UploadFile = File(default=None),
         db: Session = Depends(get_db)
 ):
-    post = schemas.PostCreate(title=title, content=content, owner_id=user.id)
+    # post = schemas.PostCreate(title=title, content=content, owner_id=user.id)
+    post = schemas.BasePost(title=title, content=content, owner_id=user.id)
     if image:
         with open(f'media/{user.username}_{image.filename}', 'wb') as buffer:
             shutil.copyfileobj(image.file, buffer)
@@ -37,12 +46,12 @@ def create_post(
     return crud.create_post(db, post, user.id)
 
 
-@router.get("/", response_model=list[schemas.Post])
+@posts_router.get("/", response_model=list[schemas.Post])
 def get_posts(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     return crud.get_posts(db, skip, limit)
 
 
-@router.get("/{post_id}", response_model=schemas.PostDetail)
+@posts_router.get("/{post_id}", response_model=schemas.PostDetail)
 def get_post(post_id: int, db: Session = Depends(get_db)):
     post = crud.get_post_details(db, post_id)
     if post is None:
@@ -50,10 +59,10 @@ def get_post(post_id: int, db: Session = Depends(get_db)):
     return post
 
 
-@router.delete('/{post_id}', status_code=204)
+@posts_router.delete('/{post_id}', status_code=204)
 def delete_post(
         post_id: int,
-        user: user_schemas.User = Depends(user_crud.get_current_user),
+        user: user_schemas.User = Depends(user_crud.get_current_active_user),
         db: Session = Depends(get_db)
 ):
     post = crud.get_post(db, post_id)
@@ -67,13 +76,13 @@ def delete_post(
     return JSONResponse({"message": "deleted successfully"})
 
 
-@router.put('/{post_id}', status_code=200, response_model=schemas.Post)
+@posts_router.put('/{post_id}', status_code=200, response_model=schemas.Post)
 def update_post(
         post_id: int,
         title: str = Form(),
         content: str = Form(),
         image: UploadFile = File(default=None),
-        user: user_schemas.User = Depends(user_crud.get_current_user),
+        user: user_schemas.User = Depends(user_crud.get_current_active_user),
         db: Session = Depends(get_db)
 ):
     post = crud.get_post(db, post_id)
@@ -96,13 +105,13 @@ def update_post(
     return post
 
 
-@router.patch('/{post_id}', status_code=200, response_model=schemas.Post)
+@posts_router.patch('/{post_id}', status_code=200, response_model=schemas.Post)
 def partial_update_post(
         post_id: int,
         title: str = Form(default=None),
         content: str = Form(default=None),
         image: UploadFile = File(default=None),
-        user: user_schemas.User = Depends(user_crud.get_current_user),
+        user: user_schemas.User = Depends(user_crud.get_current_active_user),
         db: Session = Depends(get_db)
 ):
     post = crud.get_post(db, post_id)
@@ -126,7 +135,7 @@ def partial_update_post(
     return post
 
 
-@router.post(
+@posts_router.post(
     '/{post_id}/like',
     responses={400: {"description": "Forbidden. It's your post"}},
     name="Add/Remove like",
@@ -134,7 +143,7 @@ def partial_update_post(
 )
 def add_like(
         post_id: int,
-        user: user_schemas.User = Depends(user_crud.get_current_user),
+        user: user_schemas.User = Depends(user_crud.get_current_active_user),
         db: Session = Depends(get_db),
 ):
     post = crud.get_post(db, post_id)
@@ -147,7 +156,7 @@ def add_like(
     return JSONResponse({"message": "Success"}, status_code=201)
 
 
-@router.post(
+@posts_router.post(
     '/{post_id}/dislike',
     responses={400: {"description": "Forbidden. It's your post"}},
     name="Add/Remove dislike",
@@ -155,7 +164,7 @@ def add_like(
 )
 def add_dislike(
         post_id: int,
-        user: user_schemas.User = Depends(user_crud.get_current_user),
+        user: user_schemas.User = Depends(user_crud.get_current_active_user),
         db: Session = Depends(get_db)
 ):
     post = crud.get_post(db, post_id)
@@ -168,7 +177,7 @@ def add_dislike(
     return JSONResponse({"message": "Success"}, status_code=201)
 
 
-@router.post(
+@posts_router.post(
     '/{post_id}/repost',
     responses={400: {"description": "Forbidden. It's your post"}},
     name="Repost the post",
@@ -176,7 +185,7 @@ def add_dislike(
 )
 def post_repost(
         post_id: int,
-        user: user_schemas.User = Depends(user_crud.get_current_user),
+        user: user_schemas.User = Depends(user_crud.get_current_active_user),
         db: Session = Depends(get_db)
 ):
     post = crud.get_post(db, post_id)
@@ -189,19 +198,72 @@ def post_repost(
     return JSONResponse({"message": "Success"}, status_code=201)
 
 
-@router.post(
+@posts_router.post(
     '/{post_id}/comment',
     name="Add comment",
     status_code=201
 )
 def add_comment(
         post_id: int,
-        content: schemas.BaseComment,
-        user: user_schemas.User = Depends(user_crud.get_current_user),
+        content: schemas.AddComment,
+        user: user_schemas.User = Depends(user_crud.get_current_active_user),
         db: Session = Depends(get_db)
 ):
     post = crud.get_post(db, post_id)
     if post is None:
         raise HTTPException(status_code=HTTP_404_NOT_FOUND, detail="Post not found")
+
+    parent_comment = content.parent_comment
+    if parent_comment is not None:
+        parent_comment_exists = crud.comment_exists(db, parent_comment)
+        if parent_comment_exists is None:
+            raise HTTPException(status_code=HTTP_400_BAD_REQUEST, detail="Parent comment not found")
+
     crud.add_comment(db, post_id, user.id, content)
     return JSONResponse({"success": "Your comment has been added"}, status_code=201)
+
+
+@comments_router.put(
+    '/{comment_id}',
+    name="Delete Comment",
+)
+def delete_comment(
+        comment_id: int,
+        user: user_schemas.User = Depends(user_crud.get_current_active_user),
+        db: Session = Depends(get_db)
+):
+    comment = crud.comment_exists(db, comment_id)
+    if comment is None:
+        raise HTTPException(status_code=404, detail="Comment not found")
+    is_owner = permissions.comment_owner(user.id, comment.owner_id)
+    if not is_owner:
+        raise HTTPException(status_code=403, detail="It's not your comment")
+    comment.deleted = True
+    db.commit()
+    return JSONResponse(content={"message": "Comment has been deleted"}, status_code=204)
+
+
+@comments_router.patch(
+    "/{comment_id}",
+    name="Change comment",
+    status_code=200,
+    response_model=schemas.ChangeComment
+)
+def update_comment(
+        comment_id: int,
+        content: str,
+        user: user_schemas.User = Depends(user_crud.get_current_active_user),
+        db: Session = Depends(get_db),
+):
+    print("im here")
+    comment = crud.comment_exists(db, comment_id)
+    print("comment to dict", dir(comment))
+    if comment is None:
+        raise HTTPException(status_code=404, detail="Comment not found")
+    is_owner = permissions.comment_owner(user.id, comment.owner_id)
+    if not is_owner:
+        raise HTTPException(status_code=403, detail="It's not your comment")
+    comment.content = content
+
+    db.commit()
+    return comment

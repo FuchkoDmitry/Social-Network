@@ -1,7 +1,7 @@
 
 from fastapi import Depends, HTTPException
 from jose import jwt, JWTError
-from sqlalchemy import or_
+from sqlalchemy import or_, and_
 from sqlalchemy.orm import Session, joinedload, lazyload, collections
 from starlette import status
 
@@ -33,6 +33,13 @@ def user_exists(db: Session, username: str | None, email: str | None = None):
     return db.query(models.User).filter(models.User.username == username).first()
 
 
+def get_user_by_uuid(db: Session, uuid: str):
+    return db.query(models.User).filter(and_(
+        models.User.uuid_to_activate == uuid,
+        models.User.is_active == False
+    )).first()
+
+
 def create_user(db: Session, user: schemas.CreateUser):
     user.password = security.get_password_hash(user.password)
     user = user.dict()
@@ -43,6 +50,10 @@ def create_user(db: Session, user: schemas.CreateUser):
     db.refresh(user)
     return user
 
+
+# def activate_user(db: Session, uuid: str):
+#     '''активация пользователя'''
+#     u
 
 def authenticate_user(db: Session, username: str, password: str):
     '''аутентификация по email?'''
@@ -81,4 +92,4 @@ async def get_current_user(token: str = Depends(security.oauth2_scheme), db: Ses
 async def get_current_active_user(current_user: schemas.UserToken = Depends(get_current_user)):
     if current_user.is_active:
         return current_user
-    raise HTTPException(status_code=400, detail='подтвердите почту')
+    raise HTTPException(status_code=403, detail='Ваша учётная запись неактивирована. Подтвердите почту')

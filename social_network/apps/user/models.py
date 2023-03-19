@@ -42,6 +42,7 @@ class User(Base):
     dob = sq.Column(sq.Date, nullable=True)
     gender = sq.Column(ChoiceType(GENDER), nullable=True)
     is_open = sq.Column(sq.Boolean, default=True)
+    uuid_to_activate = sq.Column(sq.String, nullable=False)
 
     followed = relationship(
         'User',
