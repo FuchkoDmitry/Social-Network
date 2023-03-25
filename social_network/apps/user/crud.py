@@ -6,18 +6,20 @@ from sqlalchemy.orm import Session, joinedload, lazyload, collections
 from starlette import status
 
 from . import models, schemas, security
+from apps.post import models as p_models
 from core.database import get_db
 from core.loggers import users_logger
 
 
-def get_user(db: Session, user_id: int):
-    user = db.query(models.User).options(
-        joinedload(models.User.posts),
-        joinedload(models.User.reposts),
-        joinedload(models.User.followers),
-        joinedload(models.User.followed)
-    ).filter(models.User.id == user_id).first()
-    return user
+# def get_user(db: Session, user_id: int):
+#     # optimization for deploy
+#     # user = db.query(models.User).options(
+#     #     joinedload(models.User.posts),
+#     #     joinedload(models.User.reposts),
+#     #     joinedload(models.User.followers),
+#     #     joinedload(models.User.followed)
+#     # ).filter(models.User.id == user_id).first()
+#     return user
 
 
 def get_users(db: Session, skip: int = 0, limit: int = 100):
@@ -40,6 +42,14 @@ def get_user_by_uuid(db: Session, uuid: str):
     )).first()
 
 
+def get_user(db: Session, user_id: int):
+    return db.query(models.User).get(user_id)
+    # return db.query(models.User).join(
+    #     models.User.posts, isouter=True).join(
+    #     models.User.reposts, isouter=True
+    # ).filter(models.User.id == user_id).first()
+
+
 def create_user(db: Session, user: schemas.CreateUser):
     user.password = security.get_password_hash(user.password)
     user = user.dict()
@@ -50,10 +60,6 @@ def create_user(db: Session, user: schemas.CreateUser):
     db.refresh(user)
     return user
 
-
-# def activate_user(db: Session, uuid: str):
-#     '''активация пользователя'''
-#     u
 
 def authenticate_user(db: Session, username: str, password: str):
     '''аутентификация по email?'''

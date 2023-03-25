@@ -72,21 +72,21 @@ class Post(Base):
     owner_id = sq.Column(sq.Integer, sq.ForeignKey('user.id'), nullable=False)
     deleted = sq.Column(sq.Boolean, default=False)
 
-    likes_count = column_property(
-        sq.select([sq.func.count(Like.id)]).filter(Like.post_id == id).scalar_subquery()
-    )
-    dislikes_count = column_property(
-        sq.select([sq.func.count(Dislike.id)]).filter(Dislike.post_id == id).scalar_subquery()
-    )
-    comments_count = column_property(
-        sq.select([sq.func.count(Comment.id)]).filter(Comment.post_id == id).scalar_subquery()
-    )
-    reposts_count = column_property(
-        sq.select([sq.func.count(Repost.id)]).filter(Repost.post_id == id).scalar_subquery()
-    )
+    # likes_count = column_property(
+    #     sq.select([sq.func.count(Like.id)]).filter(Like.post_id == id).scalar_subquery()
+    # )
+    # dislikes_count = column_property(
+    #     sq.select([sq.func.count(Dislike.id)]).filter(Dislike.post_id == id).scalar_subquery()
+    # )
+    # comments_count = column_property(
+    #     sq.select([sq.func.count(Comment.id)]).filter(Comment.post_id == id).scalar_subquery()
+    # )
+    # reposts_count = column_property(
+    #     sq.select([sq.func.count(Repost.id)]).filter(Repost.post_id == id).scalar_subquery()
+    # )
 
-    post_owner = relationship('User', back_populates='posts', innerjoin=True)
-    comments = relationship(Comment, back_populates='post', cascade='all,delete', order_by=Comment.created_at)
-    post_likes = relationship(Like, back_populates='post_owner', cascade='all,delete')
-    post_dislikes = relationship(Dislike, back_populates='post_owner', cascade='all,delete')
-    reposts = relationship(Repost, back_populates='post', cascade='all,delete')
+    post_owner = relationship('User', back_populates='posts', lazy='joined')
+    comments = relationship(Comment, back_populates='post', cascade='all,delete', order_by=Comment.created_at, lazy='joined')
+    post_likes = relationship(Like, back_populates='post_owner', cascade='all,delete', lazy='joined')
+    post_dislikes = relationship(Dislike, back_populates='post_owner', cascade='all,delete', lazy='joined')
+    reposts = relationship(Repost, back_populates='post', cascade='all,delete', lazy='joined')

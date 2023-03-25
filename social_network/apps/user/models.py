@@ -50,14 +50,14 @@ class User(Base):
         primaryjoin=(followers.c.follower_id == id),
         secondaryjoin=(followers.c.followed_id == id),
         backref='followers',
-        lazy='subquery',
+        lazy='joined',
         )
 
-    posts = relationship(Post, back_populates="post_owner", innerjoin=True)
-    comments = relationship('Comment', back_populates='comment_owner')
-    liked_posts = relationship('Like', back_populates='like_owner')
-    disliked_posts = relationship('Dislike', back_populates='dislike_owner')
-    reposts = relationship('Repost', back_populates='repost_owner')
+    posts = relationship(Post, back_populates="post_owner", lazy='joined')
+    comments = relationship('Comment', back_populates='comment_owner', lazy='joined')
+    liked_posts = relationship('Like', back_populates='like_owner', lazy='joined')
+    disliked_posts = relationship('Dislike', back_populates='dislike_owner', lazy='joined')
+    reposts = relationship('Repost', back_populates='repost_owner', lazy='joined')
 
-    def fullname(self):
-        return f'{self.lastname.title()} {self.firstname.title()}'
+    # def fullname(self):
+    #     return f'{self.lastname.title()} {self.firstname.title()}'

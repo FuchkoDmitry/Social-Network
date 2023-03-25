@@ -65,7 +65,7 @@ def delete_post(
         user: user_schemas.User = Depends(user_crud.get_current_active_user),
         db: Session = Depends(get_db)
 ):
-    post = crud.get_post(db, post_id)
+    post = crud.get_post_by_id(db, post_id)
     if post is None:
         raise HTTPException(status_code=HTTP_404_NOT_FOUND)
     is_owner = permissions.post_owner(user, post)
@@ -85,7 +85,7 @@ def update_post(
         user: user_schemas.User = Depends(user_crud.get_current_active_user),
         db: Session = Depends(get_db)
 ):
-    post = crud.get_post(db, post_id)
+    post = crud.get_post_by_id(db, post_id)
     if post is None:
         raise HTTPException(status_code=HTTP_404_NOT_FOUND, detail="Post not found")
 
@@ -114,7 +114,7 @@ def partial_update_post(
         user: user_schemas.User = Depends(user_crud.get_current_active_user),
         db: Session = Depends(get_db)
 ):
-    post = crud.get_post(db, post_id)
+    post = crud.get_post_by_id(db, post_id)
     if post is None:
         raise HTTPException(status_code=HTTP_404_NOT_FOUND, detail="Post not found")
 
@@ -146,7 +146,7 @@ def add_like(
         user: user_schemas.User = Depends(user_crud.get_current_active_user),
         db: Session = Depends(get_db),
 ):
-    post = crud.get_post(db, post_id)
+    post = crud.get_post_by_id(db, post_id)
     if post is None:
         raise HTTPException(status_code=HTTP_404_NOT_FOUND, detail="Post not found")
     is_owner = permissions.post_owner(user, post)
@@ -167,7 +167,7 @@ def add_dislike(
         user: user_schemas.User = Depends(user_crud.get_current_active_user),
         db: Session = Depends(get_db)
 ):
-    post = crud.get_post(db, post_id)
+    post = crud.get_post_by_id(db, post_id)
     if post is None:
         raise HTTPException(status_code=HTTP_404_NOT_FOUND, detail="Post not found")
     is_owner = permissions.post_owner(user, post)
@@ -188,7 +188,7 @@ def post_repost(
         user: user_schemas.User = Depends(user_crud.get_current_active_user),
         db: Session = Depends(get_db)
 ):
-    post = crud.get_post(db, post_id)
+    post = crud.get_post_by_id(db, post_id)
     if post is None:
         raise HTTPException(status_code=HTTP_404_NOT_FOUND, detail="Post not found")
     is_owner = permissions.post_owner(user, post)
@@ -209,7 +209,7 @@ def add_comment(
         user: user_schemas.User = Depends(user_crud.get_current_active_user),
         db: Session = Depends(get_db)
 ):
-    post = crud.get_post(db, post_id)
+    post = crud.get_post_by_id(db, post_id)
     if post is None:
         raise HTTPException(status_code=HTTP_404_NOT_FOUND, detail="Post not found")
 
@@ -255,9 +255,7 @@ def update_comment(
         user: user_schemas.User = Depends(user_crud.get_current_active_user),
         db: Session = Depends(get_db),
 ):
-    print("im here")
     comment = crud.comment_exists(db, comment_id)
-    print("comment to dict", dir(comment))
     if comment is None:
         raise HTTPException(status_code=404, detail="Comment not found")
     is_owner = permissions.comment_owner(user.id, comment.owner_id)

@@ -94,13 +94,23 @@ class PostPartialUpdate(BasePost):
 
 class Post(BasePost):
     owner_id: int
-    likes_count: int
-    dislikes_count: int
-    comments_count: int
-    reposts_count: int
+    comments: list[DetailComment]
+    post_likes: list[Like]
+    post_dislikes: list[Dislike]
+    reposts: list[RepostOwners]
 
-    # class Config:
-    #     orm_mode = True
+    # likes_count: int
+    # dislikes_count: int
+    # comments_count: int
+    # reposts_count: int
+
+    @root_validator()
+    def convert_values(cls, values):
+        values['comments'] = len(values['comments'])
+        values['post_likes'] = len(values['post_likes'])
+        values['post_dislikes'] = len(values['post_dislikes'])
+        values['reposts'] = len(values['reposts'])
+        return values
 
 
 class PostOwner(BaseModel):

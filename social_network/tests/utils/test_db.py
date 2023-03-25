@@ -14,7 +14,7 @@ SQLALCHEMY_TESTS_DATABASE_URL = (
     f"postgresql+psycopg2://{PG__TEST_USER}:{PG_TEST_PASSWORD}@{PG_TEST_HOST}:{PG_TEST_PORT}/{PG_TEST_DB}"
 )
 
-engine = create_engine(SQLALCHEMY_TESTS_DATABASE_URL, pool_pre_ping=True)
+engine = create_engine(SQLALCHEMY_TESTS_DATABASE_URL, pool_pre_ping=True, echo=True)
 TestingSessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
 
 

@@ -24,24 +24,7 @@ def get_posts(db: Session, skip: int = 0, limit: int = 100):
         desc(models.Post.created_at)).offset(skip).limit(limit).all()
 
 
-def get_post(db: Session, post_id: int):
-    return db.query(models.Post).filter(and_(
-        models.Post.id == post_id,
-        models.Post.deleted == False
-    )).first()
-
-
 def get_post_details(db: Session, post_id: int):
-    # sq = db.query(models.Comment).filter(and_(
-    #     models.Comment.parent_comment == None, models.Comment.post_id == post_id
-    # )).subquery()
-    #  for get only parent comments(without parent_comment attribute)
-    sq = db.query(models.Comment).where(and_(
-        models.Comment.parent_comment == None,
-        models.Comment.post_id == post_id,
-        models.Comment.deleted == False
-    )
-    ).all()
 
     post = db.query(models.Post).options(
         joinedload(models.Post.post_owner),
@@ -49,9 +32,37 @@ def get_post_details(db: Session, post_id: int):
         joinedload(models.Post.post_likes),
         joinedload(models.Post.post_dislikes),
         joinedload(models.Post.reposts),
-    ).get(post_id)
-    post.comments = sq
+    ).filter(models.Post.id == post_id).first()
+    if post:
+        #  for get only parent comments(without parent_comment attribute)
+        sq = db.query(models.Comment).where(and_(
+            models.Comment.parent_comment == None,
+            models.Comment.post_id == post_id,
+            models.Comment.deleted == False
+        )
+        ).all()
+
+        post.comments = sq
+
     return post
+
+
+# def get_post_details(db: Session, post_id: int):
+#     post = db.query(models.Post).filter(and_(
+#         models.Post.id == post_id,
+#         models.Post.deleted == False
+#     )).first()
+#     if post:
+#         sq = db.query(models.Comment).where(and_(
+#             models.Comment.parent_comment == None,
+#             models.Comment.post_id == post_id,
+#             models.Comment.deleted == False
+#         )
+#         ).all()
+#
+#         post.comments = sq
+#     return post
+
 
 
 def delete_post(db: Session, post: schemas.Post):
@@ -131,3 +142,7 @@ def add_comment(
     comment = models.Comment(**content.dict(), owner_id=user_id, post_id=post_id)
     db.add(comment)
     db.commit()
+
+
+def get_post_by_id(db, post_id: int):
+    return db.query(models.Post).get(post_id)
