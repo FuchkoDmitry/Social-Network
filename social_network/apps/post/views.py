@@ -20,7 +20,7 @@ posts_router = APIRouter(
 )
 
 comments_router = APIRouter(
-    prefix="/comment",
+    prefix="/comments",
     tags=["Change/Delete comment"],
     responses={404: {"description": "Not Found"}}
 )
@@ -59,7 +59,7 @@ def get_post(post_id: int, db: Session = Depends(get_db)):
     return post
 
 
-@posts_router.delete('/{post_id}', status_code=204)
+@posts_router.delete('/{post_id}')
 def delete_post(
         post_id: int,
         user: user_schemas.User = Depends(user_crud.get_current_active_user),
@@ -73,7 +73,7 @@ def delete_post(
         raise HTTPException(status_code=HTTP_403_FORBIDDEN)
 
     crud.delete_post(db, post)
-    return JSONResponse({"message": "deleted successfully"})
+    return JSONResponse({"message": "deleted successfully"}, status_code=204)
 
 
 @posts_router.put('/{post_id}', status_code=200, response_model=schemas.Post)
@@ -181,7 +181,7 @@ def add_dislike(
     '/{post_id}/repost',
     responses={400: {"description": "Forbidden. It's your post"}},
     name="Repost the post",
-    status_code=200
+    status_code=201
 )
 def post_repost(
         post_id: int,
@@ -251,7 +251,7 @@ def delete_comment(
 )
 def update_comment(
         comment_id: int,
-        content: str,
+        content: schemas.AddComment,
         user: user_schemas.User = Depends(user_crud.get_current_active_user),
         db: Session = Depends(get_db),
 ):
@@ -261,7 +261,7 @@ def update_comment(
     is_owner = permissions.comment_owner(user.id, comment.owner_id)
     if not is_owner:
         raise HTTPException(status_code=403, detail="It's not your comment")
-    comment.content = content
+    comment.content = content.content
 
     db.commit()
     return comment

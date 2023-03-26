@@ -38,9 +38,9 @@ def test_activate_user(client, db, registered_user):
     assert user_after_activate.is_active is True
 
 
-def test_user_login(client, db, active_user):
+def test_user_login(client, db, active_user_with_post):
     data = {
-        "username": active_user.username,
+        "username": active_user_with_post.username,
         "password": 'QwerTy1234#$'
     }
     response = client.post('/users/login', data=data)
@@ -52,12 +52,12 @@ def test_user_login(client, db, active_user):
     assert token.get('access_token') is not None
 
 
-def test_users_me(client, db, token, active_user):
+def test_users_me(client, db, token, active_user_with_post):
 
     response = client.get('/users/me/', headers={"Authorization": f"Bearer {token}"})
 
     assert response.status_code == 200
-    assert response.json()['username'] == active_user.username
+    assert response.json()['username'] == active_user_with_post.username
 
 
 def test_get_users(client, db):
