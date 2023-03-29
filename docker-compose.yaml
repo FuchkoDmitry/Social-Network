@@ -25,6 +25,40 @@ services:
       - ./social_network:/social_network/
       - static:/static
     command: sh -c "python3 setup.py install --user && uvicorn main:app --reload --workers 1 --host 0.0.0.0 --port 8000"
+  redis:
+    image: "redis:alpine"
+    restart: always
+    container_name: "redis"
+
+    command: sh -c "redis-server --port $${REDIS_PORT}"
+#    expose:
+#      - "echo $${REDIS_PORT}"
+
+    env_file:
+      - social_network/.env
+  celery:
+    build: ./social_network
+    env_file:
+      - social_network/.env
+    depends_on:
+      - redis
+      - web
+    volumes:
+      - ./social_network:/social_network/
+    command: celery -A core.celery worker --loglevel=info
+
+  flower:
+    build: ./social_network
+    command: celery -A core.celery flower
+    volumes:
+      - ./social_network:/social_network/
+    ports:
+      - "8585:5555"
+    env_file:
+      - ./social_network/.env
+    depends_on:
+      - celery
+      - redis
 
 volumes:
   pgdata:
