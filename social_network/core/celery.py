@@ -21,5 +21,6 @@ celery.conf.beat_schedule = {
     'send-yesterday-posts': {
         'task': 'apps.post.tasks.send_yesterday_posts',
         'schedule': crontab(minute=15, hour=12)
+        # 'schedule': crontab(minute='*/1')
     }
 }

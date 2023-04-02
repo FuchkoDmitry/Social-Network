@@ -1,7 +1,11 @@
+import asyncio
 import os
 from dotenv import load_dotenv
 
-from fastapi_mail import ConnectionConfig, FastMail
+from fastapi_mail import ConnectionConfig, FastMail, MessageType, MessageSchema
+
+from .loggers import users_logger
+
 
 load_dotenv()
 
@@ -19,3 +23,17 @@ conf = ConnectionConfig(
 )
 
 fast_mail = FastMail(conf)
+
+
+def send_email(subject: str, recipients: list, body: str, subtype: MessageType = MessageType.plain):
+    message = MessageSchema(
+        subject=subject, recipients=recipients,
+        body=body, subtype=subtype
+    )
+    try:
+        result = fast_mail.send_message(message)
+        asyncio.run(result)
+        return {"status": "ok"}
+    except Exception as err:
+        users_logger.error(str(err))
+        return {"status": str(err)}
