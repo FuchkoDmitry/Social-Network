@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from starlette.responses import JSONResponse
 from starlette.status import HTTP_404_NOT_FOUND, HTTP_403_FORBIDDEN, HTTP_400_BAD_REQUEST
 
-from . import schemas, crud, permissions
+from . import schemas, crud, permissions, tasks
 from ..user import (
     schemas as user_schemas,
     crud as user_crud
@@ -152,7 +152,10 @@ def add_like(
     is_owner = permissions.post_owner(user, post)
     if is_owner:
         raise HTTPException(status_code=HTTP_400_BAD_REQUEST, detail="Forbidden. It's your post")
+
     crud.add_like(db, post_id, user.id)
+    tasks.add_reaction_to_post_email_task.delay(post.owner_id, post_id, user.username)
+
     return JSONResponse({"message": "Success"}, status_code=201)
 
 
@@ -173,7 +176,10 @@ def add_dislike(
     is_owner = permissions.post_owner(user, post)
     if is_owner:
         raise HTTPException(status_code=HTTP_400_BAD_REQUEST, detail="Forbidden. It's your post")
+
     crud.add_dislike(db, post_id, user.id)
+    tasks.add_reaction_to_post_email_task.delay(post.owner_id, post_id, user.username)
+
     return JSONResponse({"message": "Success"}, status_code=201)
 
 
@@ -194,7 +200,9 @@ def post_repost(
     is_owner = permissions.post_owner(user, post)
     if is_owner:
         raise HTTPException(status_code=HTTP_400_BAD_REQUEST, detail="Forbidden. It's your post")
+
     crud.post_repost(db, post_id, user.id)
+    tasks.repost_email_task.delay(post.owner_id, post_id, user.username)
     return JSONResponse({"message": "Success"}, status_code=201)
 
 
@@ -220,6 +228,7 @@ def add_comment(
             raise HTTPException(status_code=HTTP_400_BAD_REQUEST, detail="Parent comment not found")
 
     crud.add_comment(db, post_id, user.id, content)
+    tasks.add_comment_to_post_email_task.delay(post.owner_id, post_id, user.username, content.content)
     return JSONResponse({"success": "Your comment has been added"}, status_code=201)
 
 

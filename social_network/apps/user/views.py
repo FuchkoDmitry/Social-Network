@@ -1,3 +1,4 @@
+import asyncio
 import shutil
 
 from datetime import timedelta, date
@@ -62,7 +63,19 @@ def create_user(
     # if not utils.valid_mail(email):
     #     user_views_logger.exception("Input a valid email address")
     #     raise HTTPException(status_code=400, detail="Input a valid email address")
-    background_tasks.add_task(tasks.registration_email_task, user.email, uuid)
+
+    tasks.activation_link_email_task.apply_async(
+        (user.email, uuid),
+        retry=True,
+        retry_policy={"max_retries": 3}
+    )
+    # tasks.registration_email_task.delay(user.email, uuid)
+
+
+
+     # fastapi background_task
+    # background_tasks.add_task(tasks.registration_email_task, user.email, uuid)
+
     users_logger.info(
         f'User with username:{username} and email:{email} registration successfully'
     )
@@ -79,6 +92,7 @@ def activate_user(uuid: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail="Bad URL")
     user.is_active = True
     db.commit()
+    tasks.account_activate_email_task.delay(user.email, user.username)
     return {"message": f'User "{user.username}" with email "{user.email} activated successfully"'}
 
 

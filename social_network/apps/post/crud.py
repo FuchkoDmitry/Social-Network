@@ -64,7 +64,6 @@ def get_post_details(db: Session, post_id: int):
 #     return post
 
 
-
 def delete_post(db: Session, post: schemas.Post):
     post.deleted = True
     # db.delete(post)

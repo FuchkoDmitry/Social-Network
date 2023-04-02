@@ -3,23 +3,23 @@ import pytest
 from apps.user.models import User
 
 
-# def test_user_registration(client, db):
-#     data = {
-#         "username": "test_user",
-#         "email": "dmitrii_fuchko@mail.ru",
-#         "password": "DfDfg#453!",
-#         "confirm_password": "DfDfg#453!",
-#     }
-#
-#     response = client.post('/users', data=data)
-#
-#     registered_user = db().query(User).get(1)
-#
-#     assert response.status_code == 201
-#     assert registered_user.email == data['email']
-#     assert response.json() == {"message": f"Congratulations! Your registration has been successfully. "
-#                                           f"Activation link has been sent to {data['email']}"
-#                                }
+def test_user_registration(client, db):
+    data = {
+        "username": "test_user",
+        "email": "dmitrii_fuchko@mail.ru",
+        "password": "DfDfg#453!",
+        "confirm_password": "DfDfg#453!",
+    }
+
+    response = client.post('/users', data=data)
+
+    registered_user = db().query(User).filter(User.email == data['email']).first()
+
+    assert response.status_code == 201
+    assert registered_user.email == data['email']
+    assert response.json() == {"message": f"Congratulations! Your registration has been successfully. "
+                                          f"Activation link has been sent to {data['email']}"
+                               }
 
 
 def test_activate_user(client, db, registered_user):

@@ -45,7 +45,7 @@ services:
       - web
     volumes:
       - ./social_network:/social_network/
-    command: celery -A core.celery worker --loglevel=info
+    command: celery -A core.celery worker -E --loglevel=info
 
   flower:
     build: ./social_network

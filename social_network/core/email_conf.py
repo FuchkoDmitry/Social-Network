@@ -8,7 +8,7 @@ load_dotenv()
 email_check_api_key = os.environ.get('EMAIL_CHECK_API_KEY')
 
 conf = ConnectionConfig(
-    MAIL_USERNAME=os.environ.get('MAIL_USERNAME'),
+    MAIL_USERNAME=os.environ.get('MAIL_FROM'),
     MAIL_PASSWORD=os.environ.get('MAIL_PASSWORD'),
     MAIL_FROM=os.environ.get('MAIL_FROM'),
     MAIL_SERVER=os.environ.get('MAIL_SERVER'),
