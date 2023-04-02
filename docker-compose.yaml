@@ -36,7 +36,7 @@ services:
 
     env_file:
       - social_network/.env
-  celery:
+  celery-worker:
     build: ./social_network
     env_file:
       - social_network/.env
@@ -46,6 +46,18 @@ services:
     volumes:
       - ./social_network:/social_network/
     command: celery -A core.celery worker -E --loglevel=info
+
+  celery-beat:
+    build: ./social_network
+    env_file:
+      - social_network/.env
+    depends_on:
+      - redis
+      - web
+    volumes:
+      - ./social_network:/social_network/
+    command: celery -A core.celery beat --loglevel=info
+
 
   flower:
     build: ./social_network
@@ -57,7 +69,7 @@ services:
     env_file:
       - ./social_network/.env
     depends_on:
-      - celery
+      - celery-worker
       - redis
 
 volumes:

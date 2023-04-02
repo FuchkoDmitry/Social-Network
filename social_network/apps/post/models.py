@@ -60,7 +60,6 @@ class Repost(Base):
 
 
 class Post(Base):
-
     __tablename__ = 'posts'
 
     id = sq.Column(sq.Integer, primary_key=True, autoincrement=True)
@@ -86,7 +85,14 @@ class Post(Base):
     # )
 
     post_owner = relationship('User', back_populates='posts', lazy='joined')
-    comments = relationship(Comment, back_populates='post', cascade='all,delete', order_by=Comment.created_at, lazy='joined')
+    comments = relationship(Comment, back_populates='post', cascade='all,delete', order_by=Comment.created_at,
+                            lazy='joined')
     post_likes = relationship(Like, back_populates='post_owner', cascade='all,delete', lazy='joined')
     post_dislikes = relationship(Dislike, back_populates='post_owner', cascade='all,delete', lazy='joined')
     reposts = relationship(Repost, back_populates='post', cascade='all,delete', lazy='joined')
+
+    def __str__(self):
+        return f'http://127.0.0.1:8000/posts/{self.id}. \n Title: {self.title}. \n Content: {self.content}\n'
+
+    def __repr__(self):
+        return f'http://127.0.0.1:8000/posts/{self.id}. \n Title: {self.title}. \n Content: {self.content}\n'
