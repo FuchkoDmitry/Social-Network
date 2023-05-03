@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, Form, UploadFile, File
 from sqlalchemy.orm import Session
 from starlette.responses import JSONResponse
 from starlette.status import HTTP_404_NOT_FOUND, HTTP_403_FORBIDDEN, HTTP_400_BAD_REQUEST
+from fastapi_cache.decorator import cache
 
 from . import schemas, crud, permissions, tasks
 from ..user import (
@@ -47,11 +48,13 @@ def create_post(
 
 
 @posts_router.get("/", response_model=list[schemas.Post])
+@cache(expire=150)
 def get_posts(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     return crud.get_posts(db, skip, limit)
 
 
 @posts_router.get("/{post_id}", response_model=schemas.PostDetail)
+@cache(expire=120)
 def get_post(post_id: int, db: Session = Depends(get_db)):
     post = crud.get_post_details(db, post_id)
     if post is None:

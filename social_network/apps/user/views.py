@@ -9,6 +9,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import EmailStr
 from sqlalchemy.orm import Session
 from starlette import status
+from fastapi_cache.decorator import cache
 
 from . import schemas, crud, security, tasks, utils
 from core.database import get_db
@@ -97,11 +98,13 @@ def activate_user(uuid: str, db: Session = Depends(get_db)):
 
 
 @router.get("/me/", response_model=schemas.UserDetail)
+@cache(60)
 async def read_users_me(current_user: schemas.UserDetail = Depends(crud.get_current_user)):
     return current_user
 
 
 @router.get('/{user_id}', response_model=schemas.UserDetail)
+@cache(expire=60)
 def get_user(user_id: int, db: Session = Depends(get_db)):
 
     db_user = crud.get_user(db, user_id)
@@ -112,6 +115,7 @@ def get_user(user_id: int, db: Session = Depends(get_db)):
 
 
 @router.get('/', response_model=list[schemas.User])
+@cache(expire=120)
 def get_users(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     users = crud.get_users(db, skip, limit)
     return users
